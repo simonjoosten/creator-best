@@ -32,20 +32,23 @@ export default function AiVideoPage() {
     setVideoUrl(null);
     setStatus("bezig");
 
-    // 1) Plaatjes maken
+    // 1) Plaatjes maken (klein = snel, geen time-out)
     const bitmaps: ImageBitmap[] = [];
     for (let i = 0; i < scenes; i++) {
-      setStatusMsg(`Scène ${i + 1}/${scenes} tekenen…`);
+      setStatusMsg(`Scène ${i + 1}/${scenes} tekenen… (kan ~15 sec per scène duren)`);
       const seed = Math.floor(Math.random() * 1_000_000);
-      const url = `/api/genimg?prompt=${encodeURIComponent(tekst + stijl.extra + ", cinematic")}&w=1024&h=576&seed=${seed}`;
+      const url = `/api/genimg?prompt=${encodeURIComponent(tekst + stijl.extra + ", cinematic")}&w=640&h=384&seed=${seed}`;
       try {
-        const r = await fetch(url);
+        // Ruim de tijd geven (ComfyUI kan even bezig zijn), maar netjes afhandelen
+        const r = await fetch(url, { signal: AbortSignal.timeout(180000) });
         if (!r.ok) throw new Error("gen");
         const blob = await r.blob();
+        if (!blob.type.startsWith("image")) throw new Error("geen plaatje");
         bitmaps.push(await createImageBitmap(blob));
       } catch {
+        bitmaps.forEach((b) => b.close?.());
         setStatus("fout");
-        setStatusMsg("Het maken van een plaatje lukte niet (AI druk). Probeer het zo nog eens.");
+        setStatusMsg("Het maken van een plaatje lukte niet. Staat ComfyUI aan? Probeer het zo nog eens, of kies minder scènes.");
         return;
       }
     }
@@ -84,38 +87,54 @@ export default function AiVideoPage() {
         ctx.globalAlpha = 1;
       };
 
-      const { mime, ext } = pickMimeType();
-      const stream = canvas.captureStream(30);
-      const recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      let recorder: MediaRecorder;
+      let stream: MediaStream;
+      let ext = "webm";
+      try {
+        const picked = pickMimeType();
+        ext = picked.ext;
+        stream = canvas.captureStream(30);
+        recorder = new MediaRecorder(stream, picked.mime ? { mimeType: picked.mime } : undefined);
+      } catch {
+        return reject(new Error("opname niet ondersteund"));
+      }
       const parts: Blob[] = [];
       recorder.ondataavailable = (e) => { if (e.data.size > 0) parts.push(e.data); };
       recorder.onstop = () => {
-        const blob = new Blob(parts, { type: mime || "video/webm" });
-        blobRef.current = blob;
-        if (videoUrl) URL.revokeObjectURL(videoUrl);
-        setVideoUrl(URL.createObjectURL(blob));
-        setResultExt(ext);
-        resolve();
+        try {
+          const blob = new Blob(parts, { type: recorder.mimeType || "video/webm" });
+          blobRef.current = blob;
+          setVideoUrl((old) => { if (old) URL.revokeObjectURL(old); return URL.createObjectURL(blob); });
+          setResultExt(ext);
+          resolve();
+        } catch { reject(new Error("opslaan mislukt")); }
       };
 
       const start = performance.now();
       let raf = 0;
       const loop = () => {
-        const t = (performance.now() - start) / 1000;
-        ctx.fillStyle = "#000";
-        ctx.fillRect(0, 0, W, H);
-        const idx = Math.min(bitmaps.length - 1, Math.floor(t / secPer));
-        const localT = t - idx * secPer;
-        const zoom = 1.04 + (localT / secPer) * 0.12;
-        drawCover(bitmaps[idx], zoom, 1);
-        if (localT > secPer - fade && idx < bitmaps.length - 1) {
-          drawCover(bitmaps[idx + 1], 1.04, (localT - (secPer - fade)) / fade);
+        try {
+          const t = (performance.now() - start) / 1000;
+          ctx.fillStyle = "#000";
+          ctx.fillRect(0, 0, W, H);
+          const idx = Math.min(bitmaps.length - 1, Math.floor(t / secPer));
+          const localT = t - idx * secPer;
+          const zoom = 1.04 + (localT / secPer) * 0.12;
+          drawCover(bitmaps[idx], zoom, 1);
+          if (localT > secPer - fade && idx < bitmaps.length - 1) {
+            drawCover(bitmaps[idx + 1], 1.04, (localT - (secPer - fade)) / fade);
+          }
+          if (t < total) raf = requestAnimationFrame(loop);
+        } catch {
+          cancelAnimationFrame(raf);
         }
-        if (t < total) raf = requestAnimationFrame(loop);
       };
-      recorder.start();
+      try { recorder.start(); } catch { return reject(new Error("opname start mislukt")); }
       loop();
-      setTimeout(() => { cancelAnimationFrame(raf); recorder.stop(); }, total * 1000 + 200);
+      setTimeout(() => {
+        cancelAnimationFrame(raf);
+        try { if (recorder.state !== "inactive") recorder.stop(); } catch { /* al gestopt */ }
+      }, total * 1000 + 200);
     });
   }
 
