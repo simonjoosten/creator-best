@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎬 VideoBest
 
-## Getting Started
+Een browser-app vol video-, foto- en AI-tools. Gemaakt met Next.js.
 
-First, run the development server:
+## Wat zit erin?
+
+**Camera & video**
+- 🎨 Filter video maken — live camera met 90+ filters, opnemen, gezicht-volgende accessoires
+- 📸 Filter foto maken — foto's met filters
+- 🎞️ Filter op je video — zet een filter op een bestaande video
+- 💬 Ondertiteling — automatische ondertitels (AI, in de browser)
+- 🎮 Spellen — tik-, mik-, reactie- en vang-spellen door de camera
+
+**AI-tools**
+- 🪄 AI foto generator — typ tekst → plaatje
+- 🖼️ AI foto veranderen — echte foto-bewerking (img2img)
+- 🎥 AI video maken — maak een filmpje van je idee
+- 🖍️ Kleurplaat / 🌟 Sticker / 😎 Emoji / ✏️ Logo / 🖼️ Poster makers
+
+## AI: lokaal of online
+
+De AI-beelden komen van **jouw eigen ComfyUI** (lokaal, onbeperkt, topkwaliteit) als die draait,
+anders valt de app terug op een gratis online-AI. Er zit een veiligheidsfilter op zodat er geen
+ongepaste dingen gemaakt worden.
+
+## Zelf draaien
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open daarna http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Voor de beste AI-kwaliteit: installeer [ComfyUI](https://github.com/comfyanonymous/ComfyUI)
+met het model `sd_xl_turbo_1.0_fp16.safetensors` en start het op poort 8188.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+🤖 Mede gemaakt met Claude Code
