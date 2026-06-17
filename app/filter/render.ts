@@ -27,7 +27,7 @@ function stopList(colors: string[]): { c: string; at: number }[] {
   return colors.map((c, i) => ({ c, at: n === 1 ? 0 : i / (n - 1) }));
 }
 
-function drawOverlay(ctx: CanvasRenderingContext2D, o: Overlay, W: number, H: number) {
+export function drawOverlay(ctx: CanvasRenderingContext2D, o: Overlay, W: number, H: number) {
   ctx.save();
   const op = o.opacity ?? 1;
 

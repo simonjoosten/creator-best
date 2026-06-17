@@ -52,6 +52,7 @@ const TOOLS = [
   { tab: "Video Best", naam: "Filter video maken", beschrijving: "Live camera met 90+ filters + opnemen.", icoon: "🎨", link: "/filter" },
   { tab: "Video Best", naam: "Filter op je video", beschrijving: "Zet een filter op een bestaande video.", icoon: "🎞️", link: "/videofilter" },
   { tab: "Video Best", naam: "Ondertiteling maken", beschrijving: "Automatische ondertitels onder je video.", icoon: "💬", link: "/ondertiteling" },
+  { tab: "Video Best", naam: "Edit Station", beschrijving: "Volledige video-editor: filters, knippen, tekst, snelheid + meer.", icoon: "🎬", link: "/editstation" },
   { tab: "Video Best", naam: "AI video maken", beschrijving: "Typ je idee en de AI maakt er een filmpje van.", icoon: "🎥", link: "/aivideo" },
 
   // ---- Foto Best ----
@@ -65,6 +66,7 @@ const TOOLS = [
   { tab: "Creatie Best", naam: "Emoji maker", beschrijving: "Verzin je eigen emoji.", icoon: "😎", link: "/emoji" },
   { tab: "Creatie Best", naam: "Logo maker", beschrijving: "AI maakt een logo voor je kanaal of team.", icoon: "✏️", link: "/logo" },
   { tab: "Creatie Best", naam: "Poster maker", beschrijving: "Maak een coole poster voor aan de muur.", icoon: "🖼️", link: "/poster" },
+  { tab: "Creatie Best", naam: "AI muziek maken", beschrijving: "Typ een stijl en de AI maakt muziek.", icoon: "🎵", link: "/aimuziek" },
 ];
 
 function MainScreen() {

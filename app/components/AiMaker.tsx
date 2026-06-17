@@ -62,6 +62,13 @@ export default function AiMaker({ cfg }: { cfg: MakerConfig }) {
       else window.open(imgUrl, "_blank");
     } catch { /* afgebroken */ }
   }
+  function printen() {
+    if (!imgUrl) return;
+    const w = window.open("", "_blank");
+    if (!w) return;
+    w.document.write(`<html><head><title>${cfg.titel}</title><style>@page{margin:1cm}html,body{margin:0;height:100%}img{max-width:100%;max-height:100%;display:block;margin:auto}</style></head><body><img src="${imgUrl}" onload="window.focus();window.print();"></body></html>`);
+    w.document.close();
+  }
 
   return (
     <main className="min-h-screen bg-zinc-950 px-3 py-4 text-white sm:px-6 sm:py-6">
@@ -96,8 +103,9 @@ export default function AiMaker({ cfg }: { cfg: MakerConfig }) {
             </div>
             {!loading && !error && (
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <button onClick={bewaar} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 px-5 py-2.5 font-semibold transition-transform active:scale-95">📥 Bewaar in Foto&apos;s</button>
-                <button onClick={download} className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 font-semibold text-black transition-transform active:scale-95">⬇ Download</button>
+                <button onClick={printen} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 px-5 py-2.5 font-semibold transition-transform active:scale-95">🖨️ Printen</button>
+                <button onClick={bewaar} className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 font-semibold text-black transition-transform active:scale-95">📥 Bewaar/deel</button>
+                <button onClick={download} className="inline-flex items-center gap-2 rounded-full border border-zinc-700 px-5 py-2.5 font-semibold text-zinc-200 hover:bg-zinc-800">⬇ Download</button>
                 <button onClick={maak} className="inline-flex items-center gap-2 rounded-full border border-zinc-700 px-5 py-2.5 font-semibold text-zinc-200 hover:bg-zinc-800">🎲 Opnieuw</button>
               </div>
             )}
