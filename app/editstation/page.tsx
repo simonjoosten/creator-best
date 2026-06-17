@@ -13,6 +13,7 @@ const PANELS = ["🎨 Filters", "🌈 Kleur", "🔄 Vorm", "✂️ Knippen", "�
 export default function EditStation() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const audioCtxRef = useRef<any>(null);
   const audioDestRef = useRef<MediaStreamAudioDestinationNode | null>(null);
@@ -199,8 +200,12 @@ export default function EditStation() {
           <span className="w-12" />
         </div>
 
+        {/* Bestandskiezer (altijd aanwezig, wordt via de knoppen geopend) */}
+        <input ref={fileRef} type="file" accept="video/*,video/quicktime,.mov,.mp4,.m4v,.webm" className="hidden" onChange={(e) => { loadFile(e.target.files?.[0]); e.target.value = ""; }} />
+
         {!fileUrl ? (
-          <label
+          <div
+            onClick={() => fileRef.current?.click()}
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={(e) => { e.preventDefault(); setDragOver(false); loadFile(e.dataTransfer.files?.[0]); }}
@@ -209,9 +214,8 @@ export default function EditStation() {
             <span className="text-5xl">🎬</span>
             <p className="text-lg font-semibold">Kies of sleep een video om te bewerken</p>
             <p className="text-sm text-zinc-400">Uit Foto&apos;s, Bestanden… of plak met ⌘V · 100+ tools</p>
-            <input type="file" accept="video/*,video/quicktime,.mov,.mp4,.m4v,.webm" className="hidden" onChange={(e) => loadFile(e.target.files?.[0])} />
             <span className="mt-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 px-6 py-2.5 font-semibold">📂 Kies video</span>
-          </label>
+          </div>
         ) : (
           <>
             {/* Voorbeeld */}
@@ -227,7 +231,7 @@ export default function EditStation() {
             {/* Export */}
             <div className="mt-3 flex flex-wrap items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-3 sm:p-4">
               <button onClick={exporteer} disabled={exporting} className="flex items-center gap-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 px-6 py-3 font-semibold shadow-lg shadow-pink-500/30 transition-transform active:scale-95 disabled:opacity-50">{exporting ? "⏳ Exporteren…" : "✨ Exporteer video"}</button>
-              <label className="cursor-pointer rounded-full border border-zinc-700 px-5 py-3 font-semibold text-zinc-200 hover:bg-zinc-800">📂 Andere video<input type="file" accept="video/*,.mov,.mp4,.m4v,.webm" className="hidden" onChange={(e) => loadFile(e.target.files?.[0])} /></label>
+              <button onClick={() => fileRef.current?.click()} className="rounded-full border border-zinc-700 px-5 py-3 font-semibold text-zinc-200 hover:bg-zinc-800">📂 Andere video</button>
               {exporting && <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-zinc-800"><div className="h-full rounded-full bg-gradient-to-r from-pink-500 to-purple-500" style={{ width: `${Math.round(progress * 100)}%` }} /></div>}
               {exporting && <p className="w-full text-xs text-zinc-500">De video speelt één keer af terwijl ik alles erin bak — even geduld tot het eind van je gekozen stuk.</p>}
             </div>
