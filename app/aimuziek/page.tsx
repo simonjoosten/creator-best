@@ -33,7 +33,7 @@ function encodeWAV(samples: Float32Array, sampleRate: number): Blob {
 
 export default function AiMuziekPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const synthRef = useRef<any>(null);
+  const synthRef = useRef<{ tokenizer: any; model: any } | null>(null);
   const blobRef = useRef<Blob | null>(null);
   const [prompt, setPrompt] = useState("");
   const [lengte, setLengte] = useState(256); // tokens ≈ duur
@@ -52,14 +52,18 @@ export default function AiMuziekPage() {
         const url = ["https://cdn.jsdelivr.net/npm", "/@huggingface/transformers@3.8.0"].join("");
         const mod = await import(/* webpackIgnore: true */ url);
         mod.env.allowLocalModels = false;
-        synthRef.current = await mod.pipeline("text-to-audio", "Xenova/musicgen-small", {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          progress_callback: (p: any) => { if (p.status === "progress" && p.file) setStatusMsg(`AI laden: ${p.file} ${Math.round(p.progress || 0)}%`); },
-        });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const prog = (p: any) => { if (p.status === "progress" && p.file) setStatusMsg(`AI laden: ${p.file} ${Math.round(p.progress || 0)}%`); };
+        const tokenizer = await mod.AutoTokenizer.from_pretrained("Xenova/musicgen-small", { progress_callback: prog });
+        const model = await mod.MusicgenForConditionalGeneration.from_pretrained("Xenova/musicgen-small", { progress_callback: prog });
+        synthRef.current = { tokenizer, model };
       }
       setStatusMsg("Muziek aan het maken… (dit duurt even, je Mac doet het werk)");
-      const out = await synthRef.current(t, { max_new_tokens: lengte, do_sample: true, guidance_scale: 3 });
-      const blob = encodeWAV(out.audio as Float32Array, out.sampling_rate as number);
+      const { tokenizer, model } = synthRef.current;
+      const inputs = tokenizer(t);
+      const audioValues = await model.generate({ ...inputs, max_new_tokens: lengte, do_sample: true, guidance_scale: 3 });
+      const sr = model.config?.audio_encoder?.sampling_rate ?? 32000;
+      const blob = encodeWAV(audioValues.data as Float32Array, sr);
       blobRef.current = blob;
       setAudioUrl((old) => { if (old) URL.revokeObjectURL(old); return URL.createObjectURL(blob); });
       setStatus("klaar"); setStatusMsg("");
