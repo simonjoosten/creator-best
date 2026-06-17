@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { isPromptOk } from "../lib/safe";
+import { aiBase } from "../lib/aiBase";
 
 const STIJLEN = [
   { naam: "Verras me", extra: "" },
@@ -37,7 +38,7 @@ export default function AiFotoPage() {
     const volledig = prompt.trim() + stijl.extra + ", high quality, detailed";
     const seed = Math.floor(Math.random() * 1_000_000);
     // Via onze eigen server-route (die blijft proberen tot het lukt)
-    return `/api/genimg?prompt=${encodeURIComponent(volledig)}&w=${formaat.w}&h=${formaat.h}&seed=${seed}`;
+    return `${aiBase()}/api/genimg?prompt=${encodeURIComponent(volledig)}&w=${formaat.w}&h=${formaat.h}&seed=${seed}`;
   }
 
   function genereer() {

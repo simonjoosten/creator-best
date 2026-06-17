@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { isPromptOk } from "../lib/safe";
+import { aiBase } from "../lib/aiBase";
 
 export type MakerConfig = {
   titel: string;
@@ -27,7 +28,7 @@ export default function AiMaker({ cfg }: { cfg: MakerConfig }) {
 
   function bouwUrl() {
     const seed = Math.floor(Math.random() * 1_000_000);
-    return `/api/genimg?prompt=${encodeURIComponent(prompt.trim() + cfg.suffix)}&w=${W}&h=${H}&seed=${seed}`;
+    return `${aiBase()}/api/genimg?prompt=${encodeURIComponent(prompt.trim() + cfg.suffix)}&w=${W}&h=${H}&seed=${seed}`;
   }
   function maak() {
     const t = prompt.trim();

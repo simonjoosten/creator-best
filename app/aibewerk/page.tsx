@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { isPromptOk } from "../lib/safe";
+import { aiBase } from "../lib/aiBase";
 
 const STIJLEN = [
   { naam: "Zelfde stijl", extra: "" },
@@ -47,7 +48,7 @@ export default function AiBewerkPage() {
       fd.append("image", fotoFileRef.current);
       fd.append("prompt", `${watIs.trim() ? watIs.trim() + ", " : ""}${verandering.trim()}${stijl.extra}`);
       fd.append("sterkte", String(sterkte));
-      const r = await fetch("/api/editimg", { method: "POST", body: fd });
+      const r = await fetch(`${aiBase()}/api/editimg`, { method: "POST", body: fd });
       if (!r.ok) {
         const j = await r.json().catch(() => ({}));
         setMelding(j.error || "Het lukte niet. Staat ComfyUI aan?");
@@ -84,7 +85,7 @@ export default function AiBewerkPage() {
     setLoading(true);
     const tekst = `${watIs.trim() ? watIs.trim() + ", " : ""}${verandering.trim()}${stijl.extra}, high quality, detailed`;
     const seed = Math.floor(Math.random() * 1_000_000);
-    setImgUrl(`/api/genimg?prompt=${encodeURIComponent(tekst)}&w=1024&h=1024&seed=${seed}`);
+    setImgUrl(`${aiBase()}/api/genimg?prompt=${encodeURIComponent(tekst)}&w=1024&h=1024&seed=${seed}`);
   }
 
   async function download() {

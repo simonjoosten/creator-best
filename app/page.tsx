@@ -124,7 +124,9 @@ function MainScreen() {
           {zichtbaar.length === 0 && <p className="rounded-2xl border border-dashed border-zinc-800 py-10 text-center text-zinc-500">Geen tool gevonden voor “{zoek}”.</p>}
         </div>
 
-        <p className="mt-12 text-center text-xs text-zinc-600">{TOOLS.length} tools · 3 tabbladen ✨</p>
+        <p className="mt-12 text-center text-xs text-zinc-600">
+          {TOOLS.length} tools · 3 tabbladen ✨ · <Link href="/admin" className="hover:text-zinc-400">🔒 Admin</Link>
+        </p>
       </div>
     </main>
   );

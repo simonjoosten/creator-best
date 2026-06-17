@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { pickMimeType } from "../filter/render";
 import { isPromptOk } from "../lib/safe";
+import { aiBase } from "../lib/aiBase";
 
 const STIJLEN = [
   { naam: "Verras me", extra: "" },
@@ -37,7 +38,7 @@ export default function AiVideoPage() {
     for (let i = 0; i < scenes; i++) {
       setStatusMsg(`Scène ${i + 1}/${scenes} tekenen… (kan ~15 sec per scène duren)`);
       const seed = Math.floor(Math.random() * 1_000_000);
-      const url = `/api/genimg?prompt=${encodeURIComponent(tekst + stijl.extra + ", cinematic")}&w=640&h=384&seed=${seed}`;
+      const url = `${aiBase()}/api/genimg?prompt=${encodeURIComponent(tekst + stijl.extra + ", cinematic")}&w=640&h=384&seed=${seed}`;
       try {
         // Ruim de tijd geven (ComfyUI kan even bezig zijn), maar netjes afhandelen
         const r = await fetch(url, { signal: AbortSignal.timeout(180000) });
