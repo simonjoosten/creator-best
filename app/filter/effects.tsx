@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Overlay } from "./filters";
-import { overlayStyle } from "./render";
+import type { Hud, Overlay } from "./filters";
+import { dateStamp, fmtTimecode, overlayStyle } from "./render";
 
 // Tekent een gekleurde laag in het live beeld (duotone = twee lagen)
 export function OverlayLayers({ overlay }: { overlay: Overlay }) {
@@ -17,6 +17,135 @@ export function OverlayLayers({ overlay }: { overlay: Overlay }) {
     );
   }
   return <div style={overlayStyle(overlay)} />;
+}
+
+// ===========================================================================
+//  HUD-LAAG — live camera-schermpje (REC, timecode, dradenkruis, VHS-ruis…).
+//  Zelfde data als drawHud() op het canvas, zodat live = opname.
+// ===========================================================================
+function CornerL({ pos, accent }: { pos: "tl" | "tr" | "bl" | "br"; accent: string }) {
+  const s: React.CSSProperties = { position: "absolute", width: "5cqh", height: "5cqh" };
+  const b = `0.5cqh solid ${accent}`;
+  if (pos === "tl") Object.assign(s, { left: 0, top: 0, borderLeft: b, borderTop: b });
+  if (pos === "tr") Object.assign(s, { right: 0, top: 0, borderRight: b, borderTop: b });
+  if (pos === "bl") Object.assign(s, { left: 0, bottom: 0, borderLeft: b, borderBottom: b });
+  if (pos === "br") Object.assign(s, { right: 0, bottom: 0, borderRight: b, borderBottom: b });
+  return <span style={s} />;
+}
+
+export function HudLayer({ hud }: { hud: Hud }) {
+  const accent = hud.accent ?? "#ffffff";
+  const font = hud.mono ? "ui-monospace, monospace" : "inherit";
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const textShadow = "0 1px 3px rgba(0,0,0,0.8)";
+  const base: React.CSSProperties = { position: "absolute", fontFamily: font, color: accent, fontWeight: 700, fontSize: "4.2cqh", textShadow, whiteSpace: "nowrap", lineHeight: 1 };
+  const stampTop = hud.cinemaBars ? "13cqh" : "4cqh";
+  const stampBot = hud.cinemaBars ? "13cqh" : "4cqh";
+  const n = 3 - (tick % 3);
+
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {/* Filmbalken */}
+      {hud.cinemaBars && (
+        <>
+          <div className="absolute inset-x-0 top-0 bg-black" style={{ height: "11cqh" }} />
+          <div className="absolute inset-x-0 bottom-0 bg-black" style={{ height: "11cqh" }} />
+        </>
+      )}
+
+      {/* Verrekijker-masker */}
+      {hud.circleMask && (
+        <div className="absolute inset-0" style={{ background: "radial-gradient(circle 46cqh at 50% 50%, transparent 0 98%, #000 99%)" }} />
+      )}
+
+      {/* Dradenkruis */}
+      {hud.crosshair && (
+        <>
+          <div className="absolute left-1/2 top-1/2" style={{ width: "13cqh", height: "0.4cqh", background: accent, transform: "translate(-50%,-50%)", opacity: 0.85 }} />
+          <div className="absolute left-1/2 top-1/2" style={{ width: "0.4cqh", height: "13cqh", background: accent, transform: "translate(-50%,-50%)", opacity: 0.85 }} />
+          <div className="absolute left-1/2 top-1/2 rounded-full" style={{ width: "3cqh", height: "3cqh", border: `0.4cqh solid ${accent}`, transform: "translate(-50%,-50%)", opacity: 0.85 }} />
+        </>
+      )}
+
+      {/* Horizonlijn (drone) */}
+      {hud.horizon && (
+        <>
+          <div className="absolute top-1/2" style={{ left: "20%", width: "26%", height: "0.35cqh", background: accent, opacity: 0.8 }} />
+          <div className="absolute top-1/2" style={{ right: "20%", width: "26%", height: "0.35cqh", background: accent, opacity: 0.8 }} />
+        </>
+      )}
+
+      {/* Focus-haakjes rond het midden */}
+      {hud.brackets && (
+        <div className="absolute" style={{ inset: "24%" }}>
+          <CornerL pos="tl" accent={accent} />
+          <CornerL pos="tr" accent={accent} />
+          <CornerL pos="bl" accent={accent} />
+          <CornerL pos="br" accent={accent} />
+        </div>
+      )}
+
+      {/* Hoek-haakjes in de schermhoeken */}
+      {hud.corners && (
+        <div className="absolute" style={{ inset: "4cqh" }}>
+          <CornerL pos="tl" accent={accent} />
+          <CornerL pos="tr" accent={accent} />
+          <CornerL pos="bl" accent={accent} />
+          <CornerL pos="br" accent={accent} />
+        </div>
+      )}
+
+      {/* Aftelling 3-2-1 */}
+      {hud.countdown && (
+        <div className="absolute left-1/2 top-1/2 flex items-center justify-center rounded-full" style={{ width: "64cqh", height: "64cqh", border: `0.6cqh solid ${accent}`, transform: "translate(-50%,-50%)", color: accent, fontFamily: font, fontWeight: 800, fontSize: "34cqh", textShadow, animation: "vb-blink 1s steps(1,end) infinite" }}>
+          {n}
+        </div>
+      )}
+
+      {/* VHS tracking-ruis */}
+      {hud.noiseBand && (
+        <div className="absolute inset-x-0" style={{ top: "70%", height: "5cqh", opacity: 0.35, background: "repeating-linear-gradient(90deg, rgba(255,255,255,0.8) 0 3px, rgba(0,0,0,0.8) 3px 6px)", animation: "vb-noiseband 0.4s steps(4,end) infinite" }} />
+      )}
+
+      {/* Linksboven: REC + label */}
+      <div className="absolute flex flex-col gap-1" style={{ left: "4cqh", top: stampTop }}>
+        {hud.rec && (
+          <span className="flex items-center gap-2" style={{ ...base, position: "relative", left: 0, top: 0 }}>
+            <span className="rounded-full" style={{ width: "2.2cqh", height: "2.2cqh", background: "#ff3b3b", animation: "vb-blink 1s steps(1,end) infinite" }} />
+            {hud.recLabel ?? "REC"}
+          </span>
+        )}
+        {hud.topLabel && <span style={{ ...base, position: "relative", left: 0, top: 0 }}>{hud.topLabel}</span>}
+      </div>
+
+      {/* Rechtsboven: timecode + batterij */}
+      <div className="absolute flex flex-col items-end gap-1" style={{ right: "4cqh", top: stampTop }}>
+        {hud.timecode && <span style={{ ...base, position: "relative", right: 0, top: 0, fontWeight: 400 }}>{fmtTimecode(tick)}</span>}
+        {hud.battery && (
+          <span className="inline-flex items-center" style={{ height: "3.4cqh" }}>
+            <span style={{ width: "6cqh", height: "3cqh", border: `0.4cqh solid ${accent}`, borderRadius: "0.4cqh", padding: "0.4cqh", display: "inline-block" }}>
+              <span style={{ display: "block", width: "70%", height: "100%", background: "#5eff8a" }} />
+            </span>
+            <span style={{ width: "0.7cqh", height: "1.4cqh", background: accent, marginLeft: "0.2cqh" }} />
+          </span>
+        )}
+      </div>
+
+      {/* Onderin: datum links, info rechts */}
+      {(hud.date || hud.dateText) && (
+        <span style={{ ...base, left: "4cqh", bottom: stampBot, top: "auto", fontWeight: 400 }}>{hud.dateText ?? dateStamp()}</span>
+      )}
+      {hud.info && (
+        <span style={{ ...base, right: "4cqh", bottom: stampBot, top: "auto", fontWeight: 400 }}>{hud.info}</span>
+      )}
+    </div>
+  );
 }
 
 // ===========================================================================

@@ -40,6 +40,29 @@ export type Particle = {
   blend?: string;
 };
 
+// Camera-schermpje (record-stip, timecode, dradenkruis, VHS-ruis…).
+// Zowel live (DOM) als in de opname (canvas) getekend uit dezelfde data.
+export type Hud = {
+  accent?: string;      // hoofdkleur van de UI (standaard wit)
+  mono?: boolean;       // digitale mono-letters
+  rec?: boolean;        // knipperende REC ●
+  recLabel?: string;    // tekst naast de stip (standaard "REC")
+  timecode?: boolean;   // lopende teller 0:00:00
+  date?: boolean;       // datum/tijd-stempel onderin
+  dateText?: string;    // vaste tekst i.p.v. tijd (bv "▶ PLAY")
+  battery?: boolean;    // batterij-icoon rechtsboven
+  crosshair?: boolean;  // dradenkruis in het midden
+  brackets?: boolean;   // focus-haakjes rond het midden
+  corners?: boolean;    // hoek-haakjes in de schermhoeken
+  cinemaBars?: boolean; // zwarte filmbalken boven + onder
+  noiseBand?: boolean;  // tracking-ruis balk onderaan (VHS)
+  circleMask?: boolean; // verrekijker-masker (ronde rand)
+  countdown?: boolean;  // film-aftelling 3-2-1
+  horizon?: boolean;    // horizon-lijn (drone)
+  topLabel?: string;    // tekst linksboven (bv "CAM 03", "● LIVE")
+  info?: string;        // tekst onderin (bv "ALT 120m", "f/1.8")
+};
+
 export type Filter = {
   id: string;
   naam: string;
@@ -51,6 +74,7 @@ export type Filter = {
   props?: Prop[];
   particles?: Particle;
   special?: string;
+  hud?: Hud;
   swatch: string;
 };
 
@@ -61,7 +85,7 @@ const vignette = (opacity = 0.7): Overlay => ({ kind: "vignette", opacity });
 const scan = (lineColor = "rgba(0,0,0,0.35)", lineGap = 3, opacity = 0.6): Overlay => ({ kind: "scanlines", lineColor, lineGap, opacity });
 const duo = (dark: string, light: string, opacity = 1): Overlay => ({ kind: "duotone", colors: [dark, light], opacity });
 
-export const CATEGORIES = ["Kleuren", "Stijl", "Effecten", "Glitch", "Achtergrond", "Grappig", "Spel"];
+export const CATEGORIES = ["Kleuren", "Camera", "Stijl", "Effecten", "Glitch", "Achtergrond", "Grappig", "Spel"];
 
 export const FILTERS: Filter[] = [
   { id: "geen", naam: "Origineel", emoji: "🚫", cat: "Kleuren", swatch: "#3f3f46" },
@@ -178,4 +202,125 @@ export const FILTERS: Filter[] = [
   { id: "vangspel", naam: "Vang het!", emoji: "🧺", cat: "Spel", css: "saturate(1.2)", special: "vang", swatch: "linear-gradient(135deg,#ee0979,#ff6a00)" },
   { id: "kleurspel", naam: "Kleurtik", emoji: "🟢", cat: "Spel", css: "saturate(1.2)", special: "kleur", swatch: "linear-gradient(135deg,#00ff66,#ff0033)" },
   { id: "volgspel", naam: "Volg de stip", emoji: "🔮", cat: "Spel", css: "saturate(1.2)", special: "volg", swatch: "linear-gradient(135deg,#ff5f8f,#7b2ff7)" },
+
+  // ---- CAMERA (echte camera-schermpjes / opname-effecten) ------------------
+  { id: "cam-rec", naam: "Camcorder REC", emoji: "🔴", cat: "Camera", css: "saturate(1.15) contrast(1.05)", overlay: wash("#ffb060", "soft-light", 0.22), hud: { accent: "#ffffff", mono: true, rec: true, timecode: true, battery: true, corners: true }, swatch: "linear-gradient(135deg,#2a2a2a,#ff3b3b)" },
+  { id: "cam-vhs85", naam: "VHS 1985", emoji: "📼", cat: "Camera", css: "saturate(1.4) contrast(1.08)", vid: "vb-wobble", overlay: scan("rgba(255,0,200,0.16)", 2, 0.6), hud: { accent: "#eaeaea", mono: true, dateText: "▶ PLAY", date: true, noiseBand: true, topLabel: "SP" }, swatch: "linear-gradient(135deg,#00eaff,#ff00c8)" },
+  { id: "cam-super8", naam: "Super-8 (8mm)", emoji: "🎞️", cat: "Camera", css: "sepia(0.45) saturate(1.2) contrast(1.05) brightness(1.03)", vid: "vb-flicker", overlay: scan("rgba(0,0,0,0.22)", 3, 0.35), hud: { accent: "#ffd9a0", mono: true, topLabel: "8mm", corners: true }, swatch: "linear-gradient(135deg,#caa472,#3a2a16)" },
+  { id: "cam-cctv", naam: "Bewaking CCTV", emoji: "📹", cat: "Camera", css: "grayscale(0.7) contrast(1.2) brightness(1.02)", overlay: vignette(0.7), hud: { accent: "#d7ffd9", mono: true, rec: true, topLabel: "CAM 03", date: true, corners: true }, swatch: "linear-gradient(135deg,#334455,#000)" },
+  { id: "cam-night", naam: "Nachtzicht", emoji: "🌙", cat: "Camera", css: "brightness(1.1) saturate(1.3) hue-rotate(70deg) contrast(1.15)", overlay: wash("#00ff66", "soft-light", 0.35), hud: { accent: "#8dff8d", mono: true, crosshair: true, brackets: true, topLabel: "NIGHT VISION" }, swatch: "linear-gradient(135deg,#001a00,#00ff66)" },
+  { id: "cam-count", naam: "Film-aftelling", emoji: "🎬", cat: "Camera", css: "sepia(0.3) contrast(1.1) brightness(0.98)", overlay: scan("rgba(0,0,0,0.2)", 3, 0.3), hud: { accent: "#ffffff", countdown: true, corners: true }, swatch: "linear-gradient(135deg,#111,#eee)" },
+  { id: "cam-dash", naam: "Dashcam", emoji: "🚗", cat: "Camera", css: "saturate(1.1) contrast(1.05)", hud: { accent: "#ffffff", mono: true, rec: true, date: true, info: "0 km/h" }, swatch: "linear-gradient(135deg,#1f2937,#60a5fa)" },
+  { id: "cam-throw", naam: "Wegwerpcamera", emoji: "📸", cat: "Camera", css: "saturate(1.25) contrast(1.1) brightness(1.05)", overlay: vignette(0.8), hud: { accent: "#ffcf6e", mono: true, dateText: "'98 JUL 14", date: true }, swatch: "linear-gradient(135deg,#ffcf6e,#7a4a25)" },
+  { id: "cam-webcam", naam: "Webcam 2005", emoji: "💻", cat: "Camera", css: "saturate(0.85) contrast(0.95) brightness(1.05) blur(0.5px)", hud: { accent: "#ffffff", mono: true, topLabel: "● LIVE", date: true }, swatch: "linear-gradient(135deg,#556677,#223344)" },
+  { id: "cam-drone", naam: "Drone HUD", emoji: "🚁", cat: "Camera", css: "saturate(1.2) contrast(1.05)", hud: { accent: "#9fffe0", mono: true, crosshair: true, brackets: true, horizon: true, topLabel: "● REC", info: "ALT 120m" }, swatch: "linear-gradient(135deg,#001122,#00ffd0)" },
+  { id: "cam-cinema", naam: "Cinema-take", emoji: "🎦", cat: "Camera", css: "contrast(1.12) saturate(1.1)", overlay: lin(90, ["#00263a", "#ff7a3c"], "soft-light", 0.35), hud: { accent: "#ffffff", mono: true, cinemaBars: true, timecode: true, info: "SCENE 01  TAKE 01" }, swatch: "linear-gradient(135deg,#0b6e8f,#ff7a3c)" },
+  { id: "cam-90s", naam: "Camcorder 90s", emoji: "🕹️", cat: "Camera", css: "saturate(1.2) contrast(1.05)", overlay: scan("rgba(0,0,0,0.12)", 3, 0.3), hud: { accent: "#7fd0ff", mono: true, rec: true, date: true }, swatch: "linear-gradient(135deg,#00aaff,#003366)" },
+  { id: "cam-bino", naam: "Verrekijker", emoji: "🔭", cat: "Camera", css: "contrast(1.05) saturate(1.1)", hud: { accent: "#ffffff", mono: true, circleMask: true, crosshair: true, info: "8×42" }, swatch: "linear-gradient(135deg,#111,#888)" },
+  { id: "cam-gopro", naam: "Actiecam 4K", emoji: "🪖", cat: "Camera", css: "saturate(1.5) contrast(1.1) brightness(1.03)", hud: { accent: "#ffffff", mono: true, rec: true, battery: true, topLabel: "4K", corners: true }, swatch: "linear-gradient(135deg,#0066ff,#00ffff)" },
+  { id: "cam-dslr", naam: "Foto-zoeker", emoji: "📷", cat: "Camera", css: "contrast(1.08) saturate(1.12)", hud: { accent: "#ffffff", mono: true, brackets: true, info: "f/1.8  1/250  ISO400", topLabel: "[ ● ]" }, swatch: "linear-gradient(135deg,#222,#bbb)" },
+
+  // ---- KLEUREN (nieuw) -----------------------------------------------------
+  { id: "mango", naam: "Mango", emoji: "🥭", cat: "Kleuren", css: "saturate(1.35) brightness(1.04)", overlay: wash("#ffb02e", "soft-light", 0.5), swatch: "linear-gradient(135deg,#ffd15c,#ff7a18)" },
+  { id: "bosgroen", naam: "Bosgroen", emoji: "🌲", cat: "Kleuren", css: "saturate(1.2) contrast(1.05)", overlay: wash("#1f7a3d", "soft-light", 0.45), swatch: "linear-gradient(135deg,#3fa34d,#0b3d1e)" },
+  { id: "framboos", naam: "Framboos", emoji: "🍇", cat: "Kleuren", css: "saturate(1.3)", overlay: wash("#c81d6b", "soft-light", 0.5), swatch: "linear-gradient(135deg,#ff5fa2,#8a0e46)" },
+  { id: "middernacht", naam: "Middernacht", emoji: "🌌", cat: "Kleuren", css: "brightness(0.92) saturate(1.1)", overlay: wash("#1a2a6c", "soft-light", 0.55), swatch: "linear-gradient(135deg,#1a2a6c,#0b1020)" },
+  { id: "karamel", naam: "Karamel", emoji: "🍮", cat: "Kleuren", css: "sepia(0.4) saturate(1.3)", overlay: wash("#c47a2c", "soft-light", 0.45), swatch: "linear-gradient(135deg,#e8a15d,#7a4a1e)" },
+  { id: "aqua2", naam: "Aqua", emoji: "💧", cat: "Kleuren", css: "saturate(1.25) brightness(1.03)", overlay: wash("#12d6c4", "soft-light", 0.45), swatch: "linear-gradient(135deg,#5efce8,#0ea5a5)" },
+  { id: "wijnrood", naam: "Wijnrood", emoji: "🍷", cat: "Kleuren", css: "saturate(1.25) contrast(1.08)", overlay: wash("#7b1030", "soft-light", 0.5), swatch: "linear-gradient(135deg,#b21e46,#4a0a1e)" },
+  { id: "mintijs", naam: "Mint-ijs", emoji: "🍨", cat: "Kleuren", css: "brightness(1.06) saturate(1.05)", overlay: wash("#9af7d6", "screen", 0.3), swatch: "linear-gradient(135deg,#d6fff0,#7fe9c4)" },
+  { id: "zonnebloem", naam: "Zonnebloem", emoji: "🌻", cat: "Kleuren", css: "saturate(1.4) brightness(1.05)", overlay: wash("#ffd21f", "soft-light", 0.45), swatch: "linear-gradient(135deg,#ffe259,#ffb302)" },
+  { id: "grijszacht", naam: "Zacht grijs", emoji: "🌫️", cat: "Kleuren", css: "saturate(0.55) contrast(1.02) brightness(1.03)", swatch: "linear-gradient(135deg,#e0e0e0,#8a8a8a)" },
+  { id: "terracotta", naam: "Terracotta", emoji: "🏺", cat: "Kleuren", css: "sepia(0.35) saturate(1.3)", overlay: wash("#c8613b", "soft-light", 0.45), swatch: "linear-gradient(135deg,#e08a5f,#8a3b22)" },
+  { id: "elektrischblauw", naam: "Elektrisch blauw", emoji: "⚡", cat: "Kleuren", css: "saturate(1.5) contrast(1.1)", overlay: wash("#1e6bff", "screen", 0.35), swatch: "linear-gradient(135deg,#00c6ff,#0033ff)" },
+  { id: "vintagewarm", naam: "Vintage warm", emoji: "📻", cat: "Kleuren", css: "sepia(0.3) saturate(1.15) contrast(1.03)", overlay: wash("#ffcf8a", "soft-light", 0.4), swatch: "linear-gradient(135deg,#e8c79a,#a9793f)" },
+  { id: "koudnoir", naam: "Koud noir", emoji: "🌑", cat: "Kleuren", css: "grayscale(0.6) brightness(0.95) contrast(1.15)", overlay: wash("#2a3b55", "soft-light", 0.4), swatch: "linear-gradient(135deg,#5a6b85,#0a0f1a)" },
+  { id: "bubblegum", naam: "Bubblegum", emoji: "🍬", cat: "Kleuren", css: "saturate(1.4) brightness(1.05)", overlay: lin(135, ["#ff8ad8", "#8ad4ff"], "screen", 0.4), swatch: "linear-gradient(135deg,#ff9ac9,#8ad4ff)" },
+
+  // ---- STIJL (nieuw) -------------------------------------------------------
+  { id: "anime", naam: "Anime", emoji: "🌸", cat: "Stijl", css: "saturate(1.5) contrast(1.15) brightness(1.05)", overlay: wash("#ffd6f0", "screen", 0.2), swatch: "linear-gradient(135deg,#ffd1ec,#8ad4ff)" },
+  { id: "vaporwave", naam: "Vaporwave", emoji: "🌴", cat: "Stijl", css: "saturate(1.5) contrast(1.05)", overlay: lin(135, ["#ff71ce", "#01cdfe"], "screen", 0.4), swatch: "linear-gradient(135deg,#ff71ce,#01cdfe)" },
+  { id: "pixelart", naam: "Pixel-art", emoji: "👾", cat: "Stijl", css: "saturate(1.5) contrast(1.35)", overlay: scan("rgba(0,0,0,0.25)", 4, 0.4), swatch: "linear-gradient(135deg,#7b2ff7,#2fd6ff)" },
+  { id: "schets", naam: "Potloodschets", emoji: "✏️", cat: "Stijl", css: "grayscale(1) contrast(1.8) brightness(1.2)", swatch: "linear-gradient(135deg,#fff,#888)" },
+  { id: "popart", naam: "Popart", emoji: "🎯", cat: "Stijl", css: "saturate(2.4) contrast(1.5)", overlay: lin(45, ["#ff006e", "#ffbe0b"], "overlay", 0.35), swatch: "linear-gradient(135deg,#ff006e,#ffbe0b)" },
+  { id: "grunge", naam: "Grunge", emoji: "🎸", cat: "Stijl", css: "sepia(0.3) contrast(1.3) saturate(0.9) brightness(0.95)", overlay: vignette(0.7), swatch: "linear-gradient(135deg,#6b5b4a,#1a1410)" },
+  { id: "korrelfilm", naam: "Filmkorrel", emoji: "🎬", cat: "Stijl", css: "sepia(0.15) contrast(1.15) saturate(1.05)", overlay: scan("rgba(0,0,0,0.1)", 2, 0.4), swatch: "linear-gradient(135deg,#cbb89a,#4a4038)" },
+  { id: "y2k", naam: "Y2K", emoji: "💿", cat: "Stijl", css: "saturate(1.6) contrast(1.1) brightness(1.05)", overlay: lin(90, ["#c0c0ff", "#ffb3ec"], "screen", 0.35), swatch: "linear-gradient(135deg,#b3c6ff,#ffb3ec)" },
+  { id: "cottage", naam: "Cottagecore", emoji: "🌾", cat: "Stijl", css: "sepia(0.2) saturate(1.15) brightness(1.06)", overlay: wash("#ffe6b3", "soft-light", 0.4), swatch: "linear-gradient(135deg,#f5e0b0,#b7c98a)" },
+  { id: "kodak", naam: "Kodak-look", emoji: "🟨", cat: "Stijl", css: "saturate(1.25) contrast(1.08) brightness(1.02)", overlay: wash("#ffcf6e", "soft-light", 0.3), swatch: "linear-gradient(135deg,#ffcf6e,#c98a3a)" },
+  { id: "fuji", naam: "Fuji-look", emoji: "🟩", cat: "Stijl", css: "saturate(1.15) contrast(1.05)", overlay: wash("#7ad0b0", "soft-light", 0.3), swatch: "linear-gradient(135deg,#a0e9c4,#3a8a6a)" },
+  { id: "scifiblauw", naam: "Sci-fi blauw", emoji: "🛰️", cat: "Stijl", css: "saturate(1.2) contrast(1.1) hue-rotate(10deg)", overlay: lin(90, ["#001a3a", "#00d4ff"], "soft-light", 0.45), swatch: "linear-gradient(135deg,#001a3a,#00d4ff)" },
+  { id: "western", naam: "Western", emoji: "🌵", cat: "Stijl", css: "sepia(0.6) saturate(1.2) contrast(1.1)", overlay: wash("#d98a3d", "soft-light", 0.4), swatch: "linear-gradient(135deg,#d98a3d,#5a3a1a)" },
+  { id: "neonnoir", naam: "Neon noir", emoji: "🌃", cat: "Stijl", css: "contrast(1.2) saturate(1.3) brightness(0.95)", overlay: lin(120, ["#0a0033", "#ff00aa"], "screen", 0.4), swatch: "linear-gradient(135deg,#0a0033,#ff00aa)" },
+  { id: "fairyglow", naam: "Fairy glow", emoji: "🧚", cat: "Stijl", css: "brightness(1.12) saturate(1.25) blur(0.4px)", overlay: wash("#ffe6ff", "screen", 0.3), particles: { emoji: "✨", count: 16, speed: 0.06, size: 0.025, sway: 0.03, blend: "screen" }, swatch: "linear-gradient(135deg,#ffe6ff,#c9a0ff)" },
+
+  // ---- EFFECTEN (nieuw) ----------------------------------------------------
+  { id: "bokeh", naam: "Bokeh", emoji: "⚪", cat: "Effecten", css: "brightness(1.08) saturate(1.2) blur(0.4px)", particles: { emoji: "⚪", count: 16, speed: 0.05, size: 0.08, sway: 0.03, blend: "screen" }, swatch: "radial-gradient(circle,#fff,#8899ff)" },
+  { id: "lensflare", naam: "Lens-flare", emoji: "🔆", cat: "Effecten", css: "brightness(1.1) saturate(1.2)", overlay: lin(30, ["#ffffff", "#ff9d00"], "screen", 0.3), swatch: "radial-gradient(circle,#fff7c2,#ff9d00)" },
+  { id: "lichtstraal", naam: "Lichtstralen", emoji: "🌤️", cat: "Effecten", css: "brightness(1.1) contrast(1.05)", overlay: lin(60, ["rgba(255,240,180,0.0)", "rgba(255,240,180,0.9)"], "screen", 0.35), swatch: "linear-gradient(135deg,#fff3b0,#ffd24d)" },
+  { id: "regenlens", naam: "Regen op lens", emoji: "💦", cat: "Effecten", css: "blur(0.6px) contrast(1.05) brightness(1.03)", particles: { emoji: "💧", count: 20, speed: 0.12, size: 0.05, sway: 0.02 }, swatch: "linear-gradient(135deg,#7fb0d0,#2a4a6a)" },
+  { id: "warmtegolf", naam: "Warmtegolf", emoji: "🥵", cat: "Effecten", css: "saturate(1.3) hue-rotate(-10deg)", vid: "vb-wobble", overlay: wash("#ff7a3c", "soft-light", 0.3), swatch: "linear-gradient(135deg,#ff9a3d,#ff3c00)" },
+  { id: "prisma", naam: "Prisma", emoji: "🔺", cat: "Effecten", css: "saturate(1.5) hue-rotate(20deg) contrast(1.05)", overlay: lin(75, ["#ff0000", "#00ff00", "#0000ff"], "screen", 0.25), swatch: "linear-gradient(135deg,#f00,#0f0,#00f)" },
+  { id: "zachtglow", naam: "Zachte glow", emoji: "🌼", cat: "Effecten", css: "brightness(1.12) saturate(1.15) blur(0.6px)", overlay: wash("#fff4c2", "screen", 0.25), swatch: "radial-gradient(circle,#fffbe0,#ffd24d)" },
+  { id: "korrelruis", naam: "Korrelruis", emoji: "📷", cat: "Effecten", css: "contrast(1.1) saturate(1.05)", overlay: scan("rgba(255,255,255,0.05)", 1, 0.5), swatch: "linear-gradient(135deg,#999,#333)" },
+  { id: "echo", naam: "Echo-beeld", emoji: "👣", cat: "Effecten", css: "saturate(1.3) contrast(1.05)", vid: "vb-glitch", overlay: wash("#00ffe1", "screen", 0.15), swatch: "linear-gradient(135deg,#00ffe1,#7b2ff7)" },
+  { id: "sneeuwblur", naam: "Sneeuwstorm", emoji: "🌨️", cat: "Effecten", css: "brightness(1.08) contrast(0.95) blur(0.5px)", particles: { emoji: "❄️", count: 34, speed: 0.35, size: 0.03, sway: 0.06 }, swatch: "linear-gradient(135deg,#eaf6ff,#a9c9e0)" },
+  { id: "oudtv", naam: "Oude TV", emoji: "📺", cat: "Effecten", css: "saturate(1.2) contrast(1.15)", overlay: scan("rgba(0,0,0,0.35)", 3, 0.6), swatch: "repeating-linear-gradient(0deg,#000 0 2px,#555 2px 4px)" },
+  { id: "hittewaas", naam: "Hittewaas", emoji: "♨️", cat: "Effecten", css: "blur(0.5px) saturate(1.2)", vid: "vb-wobble", swatch: "linear-gradient(135deg,#ffd1a0,#ff8a3d)" },
+  { id: "sterflits", naam: "Sterflits", emoji: "🌟", cat: "Effecten", css: "brightness(1.1) saturate(1.3)", particles: { emoji: "✨", count: 22, speed: 0.1, size: 0.04, sway: 0.04, blend: "screen" }, swatch: "radial-gradient(circle,#fff,#ffcc00)" },
+  { id: "vervaagrand", naam: "Vervaagrand", emoji: "⭕", cat: "Effecten", css: "brightness(1.05) blur(0.3px)", overlay: vignette(0.6), swatch: "radial-gradient(circle,#ccc,#222)" },
+  { id: "dubbelzicht", naam: "Dubbelzicht", emoji: "😵", cat: "Effecten", css: "saturate(1.4) contrast(1.1)", vid: "vb-glitch", overlay: lin(90, ["#ff0033", "#00ffe1"], "screen", 0.25), swatch: "linear-gradient(135deg,#ff0033,#00ffe1)" },
+
+  // ---- GLITCH (nieuw) ------------------------------------------------------
+  { id: "signaal", naam: "Signaalstoring", emoji: "📶", cat: "Glitch", css: "saturate(1.5) contrast(1.2)", vid: "vb-glitch", overlay: scan("rgba(255,255,255,0.15)", 2, 0.6), swatch: "linear-gradient(135deg,#00fff0,#ff003c)" },
+  { id: "pixelsort", naam: "Pixel-sort", emoji: "🧬", cat: "Glitch", css: "saturate(1.8) contrast(1.3)", vid: "vb-glitch", overlay: lin(0, ["#ff00cc", "#00ffcc"], "screen", 0.3), swatch: "linear-gradient(135deg,#ff00cc,#00ffcc)" },
+  { id: "databend", naam: "Databend", emoji: "🧩", cat: "Glitch", css: "saturate(2) contrast(1.4) hue-rotate(40deg)", vid: "vb-glitch", overlay: scan("rgba(0,255,200,0.2)", 4, 0.5), swatch: "linear-gradient(135deg,#7b2ff7,#00ffa3)" },
+  { id: "tvuit", naam: "TV valt uit", emoji: "📴", cat: "Glitch", css: "contrast(1.6) brightness(1.1) saturate(0.8)", vid: "vb-glitch", overlay: scan("rgba(0,0,0,0.4)", 3, 0.6), swatch: "linear-gradient(135deg,#111,#fff)" },
+  { id: "alarmrood", naam: "Rood alarm", emoji: "🚨", cat: "Glitch", css: "saturate(1.8) contrast(1.2)", vid: "vb-glitch", overlay: wash("#ff0033", "screen", 0.35), swatch: "linear-gradient(135deg,#ff0033,#330000)" },
+  { id: "wormhole", naam: "Wormgat", emoji: "🕳️", cat: "Glitch", css: "saturate(1.6) hue-rotate(120deg) contrast(1.1)", vid: "vb-wobble", overlay: vignette(0.8), swatch: "radial-gradient(circle,#7b2ff7,#000)" },
+  { id: "corruptjpeg", naam: "Corrupt JPEG", emoji: "🗂️", cat: "Glitch", css: "saturate(1.7) contrast(1.35)", vid: "vb-glitch", overlay: scan("rgba(255,0,120,0.2)", 6, 0.5), swatch: "linear-gradient(135deg,#ff0078,#00d0ff)" },
+  { id: "trilbeeld", naam: "Trilbeeld", emoji: "📳", cat: "Glitch", css: "saturate(1.4) contrast(1.15)", vid: "vb-glitch", swatch: "linear-gradient(135deg,#00fff0,#ff9d00)" },
+  { id: "scanzwaar", naam: "Zware scanlijnen", emoji: "🖥️", cat: "Glitch", css: "saturate(1.3) contrast(1.2)", overlay: scan("rgba(0,0,0,0.5)", 2, 0.8), swatch: "repeating-linear-gradient(0deg,#000 0 2px,#0ff 2px 4px)" },
+  { id: "alarmgeel", naam: "Geel alarm", emoji: "⚠️", cat: "Glitch", css: "saturate(1.7) contrast(1.2)", vid: "vb-glitch", overlay: wash("#ffee00", "screen", 0.3), swatch: "linear-gradient(135deg,#ffee00,#332b00)" },
+  { id: "hackgroen", naam: "Hack groen", emoji: "🟩", cat: "Glitch", css: "brightness(1.05) saturate(1.4) hue-rotate(80deg) contrast(1.2)", vid: "vb-glitch", overlay: wash("#00ff66", "screen", 0.3), swatch: "linear-gradient(135deg,#001a00,#00ff66)" },
+  { id: "chroomsplit", naam: "Chroom-split", emoji: "🌈", cat: "Glitch", css: "saturate(1.9) contrast(1.15)", vid: "vb-glitch", overlay: lin(90, ["#ff0033", "#0033ff"], "screen", 0.3), swatch: "linear-gradient(135deg,#ff0033,#0033ff)" },
+
+  // ---- ACHTERGROND (nieuw) -------------------------------------------------
+  { id: "sterrenregen", naam: "Sterrenregen", emoji: "⭐", cat: "Achtergrond", css: "brightness(1.03) saturate(1.2)", overlay: wash("#0a0a2a", "soft-light", 0.3), particles: { emoji: "⭐", count: 26, speed: 0.28, size: 0.035, sway: 0.05, blend: "screen" }, swatch: "linear-gradient(135deg,#0a0a2a,#ffd24d)" },
+  { id: "goudbel", naam: "Goudbellen", emoji: "🫧", cat: "Achtergrond", css: "saturate(1.2) brightness(1.04)", particles: { emoji: "🟡", count: 20, speed: -0.16, size: 0.045, sway: 0.05, blend: "screen" }, swatch: "linear-gradient(135deg,#ffe259,#ffa751)" },
+  { id: "noten", naam: "Muzieknoten", emoji: "🎵", cat: "Achtergrond", css: "saturate(1.25)", particles: { emoji: "🎵", count: 18, speed: -0.14, size: 0.05, sway: 0.1 }, swatch: "linear-gradient(135deg,#a18cd1,#fbc2eb)" },
+  { id: "vuurvlieg", naam: "Vuurvliegjes", emoji: "🌟", cat: "Achtergrond", css: "brightness(0.98) saturate(1.2)", overlay: wash("#0a1a0a", "soft-light", 0.35), particles: { emoji: "✨", count: 22, speed: 0.04, size: 0.02, sway: 0.06, blend: "screen" }, swatch: "linear-gradient(135deg,#0a1a0a,#c8ff6a)" },
+  { id: "kersenbloesem", naam: "Kersenbloesem", emoji: "🌸", cat: "Achtergrond", css: "saturate(1.2) brightness(1.05)", overlay: wash("#ffd1ec", "soft-light", 0.3), particles: { emoji: "🌸", count: 22, speed: 0.16, size: 0.04, sway: 0.12 }, swatch: "linear-gradient(135deg,#ffd1ec,#ff8ad8)" },
+  { id: "ballonnen", naam: "Ballonnen", emoji: "🎈", cat: "Achtergrond", css: "saturate(1.3)", particles: { emoji: "🎈", count: 16, speed: -0.14, size: 0.06, sway: 0.05 }, swatch: "linear-gradient(135deg,#ff5f8f,#ffd24d)" },
+  { id: "diamanten", naam: "Diamanten", emoji: "💎", cat: "Achtergrond", css: "brightness(1.05) saturate(1.2)", particles: { emoji: "💎", count: 18, speed: 0.2, size: 0.045, sway: 0.07, blend: "screen" }, swatch: "linear-gradient(135deg,#a0e9ff,#5b6cff)" },
+  { id: "emojistorm", naam: "Emoji-storm", emoji: "🤪", cat: "Achtergrond", css: "saturate(1.3)", particles: { emoji: "😜", count: 20, speed: 0.24, size: 0.05, sway: 0.1 }, swatch: "linear-gradient(135deg,#ffde59,#ff914d)" },
+  { id: "bladgoud", naam: "Bladgoud", emoji: "🍃", cat: "Achtergrond", css: "sepia(0.2) saturate(1.3) brightness(1.03)", particles: { emoji: "🍂", count: 18, speed: 0.16, size: 0.05, sway: 0.12 }, swatch: "linear-gradient(135deg,#ffd24d,#a86a1a)" },
+  { id: "herfstwind", naam: "Herfstwind", emoji: "🍁", cat: "Achtergrond", css: "sepia(0.25) saturate(1.25)", particles: { emoji: "🍁", count: 22, speed: 0.22, size: 0.05, sway: 0.16 }, swatch: "linear-gradient(135deg,#ff9a3d,#a8421a)" },
+  { id: "kerstsneeuw", naam: "Kerstsneeuw", emoji: "🎄", cat: "Achtergrond", css: "brightness(1.04) saturate(1.15)", overlay: wash("#0a1a2a", "soft-light", 0.25), particles: { emoji: "❄️", count: 30, speed: 0.2, size: 0.035, sway: 0.05 }, swatch: "linear-gradient(135deg,#0a3d2a,#e0f7ff)" },
+  { id: "tropisch", naam: "Tropisch", emoji: "🌺", cat: "Achtergrond", css: "saturate(1.4) brightness(1.05)", overlay: wash("#00b4a0", "soft-light", 0.25), particles: { emoji: "🌺", count: 16, speed: 0.16, size: 0.05, sway: 0.1 }, swatch: "linear-gradient(135deg,#00d2a0,#ffde59)" },
+  { id: "onweer", naam: "Onweer", emoji: "⛈️", cat: "Achtergrond", css: "brightness(0.9) contrast(1.2) saturate(0.9)", overlay: wash("#33405a", "soft-light", 0.4), particles: { emoji: "⚡", count: 10, speed: 0.5, size: 0.06, blend: "screen" }, swatch: "linear-gradient(135deg,#2a3450,#0a0f1a)" },
+  { id: "veren", naam: "Verenregen", emoji: "🪶", cat: "Achtergrond", css: "brightness(1.05) saturate(1.1)", particles: { emoji: "🪶", count: 16, speed: 0.1, size: 0.05, sway: 0.18 }, swatch: "linear-gradient(135deg,#fff,#c9d6e0)" },
+  { id: "melkweg", naam: "Melkweg", emoji: "🌠", cat: "Achtergrond", css: "brightness(1.02) saturate(1.3)", overlay: lin(120, ["#0a0a2a", "#4a2a7a"], "soft-light", 0.4), particles: { emoji: "⭐", count: 30, speed: 0.05, size: 0.02, sway: 0.02, blend: "screen" }, swatch: "linear-gradient(135deg,#2b1055,#7597de)" },
+
+  // ---- GRAPPIG (nieuw) -----------------------------------------------------
+  { id: "groteogen", naam: "Grote ogen", emoji: "👀", cat: "Grappig", props: [{ emoji: "👀", anchor: "eyes", x: 0.5, y: 0.44, size: 0.9 }], swatch: "linear-gradient(135deg,#fff,#8ad4ff)" },
+  { id: "hoorntjes", naam: "Duivelhoorntjes", emoji: "😈", cat: "Grappig", css: "saturate(1.2)", props: [{ emoji: "😈", anchor: "head", lift: 0.5, x: 0.5, y: 0.1, size: 0.4 }], overlay: wash("#ff2b2b", "soft-light", 0.25), swatch: "linear-gradient(135deg,#8a0000,#ff2b2b)" },
+  { id: "regenboogkots", naam: "Regenboog-kots", emoji: "🌈", cat: "Grappig", css: "saturate(1.4)", props: [{ emoji: "🌈", anchor: "mouth", x: 0.5, y: 0.72, size: 0.5 }], swatch: "linear-gradient(135deg,#ff0000,#00d4ff)" },
+  { id: "hartogen", naam: "Hartjes-ogen", emoji: "😍", cat: "Grappig", css: "saturate(1.2)", props: [{ emoji: "😍", anchor: "eyes", x: 0.5, y: 0.44, size: 0.9 }], particles: { emoji: "❤️", count: 12, speed: -0.14, size: 0.045, sway: 0.06 }, swatch: "linear-gradient(135deg,#ff5f8f,#ff9ac9)" },
+  { id: "goudketting", naam: "Goudketting", emoji: "📿", cat: "Grappig", css: "saturate(1.25) brightness(1.04)", props: [{ emoji: "🕶️", art: "zonnebril", anchor: "eyes", x: 0.5, y: 0.43, size: 0.85 }, { emoji: "📿", x: 0.5, y: 0.9, size: 0.4 }], swatch: "linear-gradient(135deg,#ffe259,#ffa751)" },
+  { id: "katoortjes", naam: "Katoortjes", emoji: "🐱", cat: "Grappig", props: [{ emoji: "🐱", anchor: "head", lift: 0.5, x: 0.5, y: 0.1, size: 0.5 }, { emoji: "👃", anchor: "nose", x: 0.5, y: 0.55, size: 0.16 }], swatch: "linear-gradient(135deg,#ffb37f,#8a5a2b)" },
+  { id: "bloemenkrans", naam: "Bloemenkrans", emoji: "🌼", cat: "Grappig", css: "saturate(1.2)", props: [{ emoji: "🌸", anchor: "head", lift: 0.7, x: 0.5, y: 0.06, size: 0.5 }], swatch: "linear-gradient(135deg,#ffd1ec,#a8ff78)" },
+  { id: "robotogen", naam: "Robot-ogen", emoji: "🤖", cat: "Grappig", css: "saturate(1.2) hue-rotate(10deg)", props: [{ emoji: "🤖", anchor: "eyes", x: 0.5, y: 0.44, size: 0.85 }], swatch: "linear-gradient(135deg,#9aa,#456)" },
+  { id: "spekbaard", naam: "Spekbaard", emoji: "🥓", cat: "Grappig", props: [{ emoji: "🧔", anchor: "mouth", x: 0.5, y: 0.68, size: 0.55 }], swatch: "linear-gradient(135deg,#c98a5a,#6a3a1a)" },
+  { id: "alienantennes", naam: "Alien-antennes", emoji: "👽", cat: "Grappig", css: "hue-rotate(70deg) saturate(1.2)", props: [{ emoji: "👽", anchor: "head", lift: 0.55, x: 0.5, y: 0.08, size: 0.42 }], overlay: wash("#00ff87", "screen", 0.2), swatch: "linear-gradient(135deg,#00ff87,#60efff)" },
+  { id: "groothoofd", naam: "Groot hoofd", emoji: "🗣️", cat: "Grappig", props: [{ emoji: "🎈", anchor: "head", lift: 0.3, x: 0.5, y: 0.2, size: 0.9 }], swatch: "linear-gradient(135deg,#ff5f8f,#ffd24d)" },
+  { id: "cyclops", naam: "Cyclops", emoji: "👁️", cat: "Grappig", props: [{ emoji: "👁️", anchor: "eyes", x: 0.5, y: 0.44, size: 0.5 }], swatch: "linear-gradient(135deg,#fff,#8a3dff)" },
+  { id: "vlinderkroon", naam: "Vlinderkroon", emoji: "🦋", cat: "Grappig", css: "saturate(1.25)", props: [{ emoji: "🦋", anchor: "head", lift: 0.65, x: 0.5, y: 0.07, size: 0.45 }], particles: { emoji: "🦋", count: 10, speed: -0.1, size: 0.04, sway: 0.14 }, swatch: "linear-gradient(135deg,#43c6ac,#f8ffae)" },
+  { id: "sterbril", naam: "Sterrenbril", emoji: "🤩", cat: "Grappig", props: [{ emoji: "🤩", anchor: "eyes", x: 0.5, y: 0.44, size: 0.9 }], swatch: "linear-gradient(135deg,#ffd24d,#ff5f8f)" },
+  { id: "piraat", naam: "Piraat", emoji: "🏴‍☠️", cat: "Grappig", props: [{ emoji: "🎩", anchor: "head", lift: 0.6, x: 0.5, y: 0.08, size: 0.5 }, { emoji: "🦜", x: 0.82, y: 0.5, size: 0.3 }], swatch: "linear-gradient(135deg,#3a3a4a,#8a5a2b)" },
+
+  // ---- SPEL (nieuw) --------------------------------------------------------
+  { id: "doelspel", naam: "Doeltik", emoji: "🎯", cat: "Spel", css: "saturate(1.2)", special: "doel", swatch: "linear-gradient(135deg,#f12711,#f5af19)" },
+  { id: "ritmespel", naam: "Ritme-tik", emoji: "🥁", cat: "Spel", css: "saturate(1.2)", special: "ritme", swatch: "linear-gradient(135deg,#7b2ff7,#00d4ff)" },
+  { id: "kantspel", naam: "Links of rechts", emoji: "↔️", cat: "Spel", css: "saturate(1.2)", special: "kant", swatch: "linear-gradient(135deg,#11998e,#38ef7d)" },
 ];

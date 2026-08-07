@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CATEGORIES, FILTERS } from "../filter/filters";
 import { drawScene, makeSeeds, type Seed } from "../filter/render";
-import { AccessoryArt, OverlayLayers } from "../filter/effects";
+import { AccessoryArt, HudLayer, OverlayLayers } from "../filter/effects";
 import { FaceAccessories, useFaceLandmarker } from "../filter/face";
 
 // Voor foto's gebruiken we alle filters behalve de spellen
@@ -118,6 +118,8 @@ export default function FotoPage() {
           <canvas ref={canvasRef} className="hidden" />
 
           {f.overlay && <OverlayLayers overlay={f.overlay} />}
+
+          {f.hud && <HudLayer hud={f.hud} />}
 
           {f.particles &&
             Array.from({ length: f.particles.count }).map((_, i) => {

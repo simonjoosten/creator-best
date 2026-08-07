@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CATEGORIES, FILTERS } from "../filter/filters";
 import { drawScene, makeSeeds, pickMimeType, type Seed } from "../filter/render";
-import { OverlayLayers } from "../filter/effects";
+import { HudLayer, OverlayLayers } from "../filter/effects";
 
 // Voor bestaande video's: alle filters behalve spel/scan
 const VID_CATS = CATEGORIES.filter((c) => c !== "Spel");
@@ -184,6 +184,7 @@ export default function VideoFilterPage() {
             <div className="relative mt-4 aspect-video w-full overflow-hidden rounded-2xl border border-zinc-800 bg-black shadow-2xl sm:rounded-3xl" style={{ containerType: "size" }}>
               <video ref={videoRef} src={fileUrl} controls playsInline className={`absolute inset-0 h-full w-full object-contain ${f.vid ?? ""}`} style={{ filter: f.css || "none" }} />
               {f.overlay && <OverlayLayers overlay={f.overlay} />}
+              {f.hud && <HudLayer hud={f.hud} />}
               {f.particles &&
                 Array.from({ length: f.particles.count }).map((_, i) => {
                   const s = seeds[i % seeds.length];

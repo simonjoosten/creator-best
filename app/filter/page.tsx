@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CATEGORIES, FILTERS } from "./filters";
 import { drawScene, drawSlitScan, makeSeeds, pickMimeType, type Seed } from "./render";
-import { AccessoryArt, OverlayLayers } from "./effects";
+import { AccessoryArt, HudLayer, OverlayLayers } from "./effects";
 import { GameOverlay } from "./games";
 import { FaceAccessories, useFaceLandmarker } from "./face";
 
@@ -231,6 +231,9 @@ export default function FilterPage() {
 
           {/* Gekleurde laag */}
           {f.overlay && <OverlayLayers overlay={f.overlay} />}
+
+          {/* Camera-schermpje (REC, timecode, dradenkruis…) */}
+          {f.hud && <HudLayer hud={f.hud} />}
 
           {/* Deeltjes */}
           {f.particles &&

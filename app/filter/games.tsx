@@ -10,6 +10,9 @@ export function GameOverlay({ game }: { game: string }) {
   if (game === "vang") return <VangGame />;
   if (game === "kleur") return <KleurGame />;
   if (game === "volg") return <VolgGame />;
+  if (game === "doel") return <DoelGame />;
+  if (game === "ritme") return <RitmeGame />;
+  if (game === "kant") return <KantGame />;
   return <TikGame />;
 }
 
@@ -285,6 +288,115 @@ function VolgGame() {
       <Hud>⭐ {score}</Hud>
       <button onClick={() => setScore((s) => s + 5)} className="absolute h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-pink-400 to-purple-600 shadow-[0_0_18px_rgba(244,114,182,0.8)] active:scale-90" style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%` }} />
       <p className="pointer-events-none absolute inset-x-0 bottom-3 text-center text-sm text-white/80">Tik de stip zo vaak mogelijk! 🔮</p>
+    </>
+  );
+}
+
+// ---- 8) DOELTIK: het doel springt na elke rake tik naar een nieuwe plek -----
+function DoelGame() {
+  const [p, setP] = useState({ x: 0.5, y: 0.5 });
+  const [score, setScore] = useState(0);
+  const [time, setTime] = useState(20);
+  const [running, setRunning] = useState(false);
+  const [best, setBest] = useState(0);
+
+  useEffect(() => {
+    if (!running) return;
+    if (time <= 0) { setRunning(false); setBest((b) => Math.max(b, score)); return; }
+    const id = setTimeout(() => setTime((t) => t - 1), 1000);
+    return () => clearTimeout(id);
+  }, [running, time, score]);
+
+  const hit = () => {
+    if (!running) return;
+    setScore((s) => s + 1);
+    setP({ x: 0.12 + Math.random() * 0.76, y: 0.16 + Math.random() * 0.68 });
+  };
+  const start = () => { setScore(0); setTime(20); setRunning(true); setP({ x: 0.5, y: 0.5 }); };
+
+  return (
+    <>
+      <Hud>🎯 {score} · ⏱️ {time}s · 🏆 {best}</Hud>
+      {running ? (
+        <button onClick={hit} className="absolute flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-orange-500 text-3xl shadow-[0_0_18px_rgba(255,100,0,0.8)] active:scale-90" style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%`, animation: "vb-pop 0.15s ease-out" }}>🎯</button>
+      ) : (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/20">
+          {score > 0 && <p className="text-2xl font-extrabold">Score: {score} 🎉</p>}
+          <button onClick={start} className="rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-10 py-4 text-xl font-extrabold shadow-lg active:scale-90">START</button>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ---- 9) RITME-TIK: de cirkel pompt op, tik als hij groot en groen is --------
+function RitmeGame() {
+  const [scale, setScale] = useState(0.3);
+  const scaleRef = useRef(0.3);
+  const dirRef = useRef(1);
+  const [score, setScore] = useState(0);
+  const [flash, setFlash] = useState<{ ok: boolean; txt: string } | null>(null);
+
+  useEffect(() => {
+    let raf = 0;
+    let last = performance.now();
+    const speed = 0.8;
+    const loop = () => {
+      const now = performance.now();
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      let s = scaleRef.current + dirRef.current * speed * dt;
+      if (s > 1) { s = 1; dirRef.current = -1; } else if (s < 0.3) { s = 0.3; dirRef.current = 1; }
+      scaleRef.current = s;
+      setScale(s);
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  const groot = scale > 0.8;
+  const tik = () => {
+    if (groot) { setScore((s) => s + 10); setFlash({ ok: true, txt: "Ritme! +10" }); }
+    else { setScore((s) => Math.max(0, s - 5)); setFlash({ ok: false, txt: "Te vroeg!" }); }
+    setTimeout(() => setFlash(null), 500);
+  };
+
+  return (
+    <>
+      <Hud>🥁 {score}</Hud>
+      <button onClick={tik} className="absolute inset-0 flex items-center justify-center">
+        <span className="flex items-center justify-center rounded-full transition-colors" style={{ width: "40cqh", height: "40cqh", transform: `scale(${scale})`, background: groot ? "rgba(52,211,153,0.55)" : "rgba(255,255,255,0.2)", border: `0.6cqh solid ${groot ? "#34d399" : "#ffffff"}` }} />
+      </button>
+      <span className={`pointer-events-none absolute inset-x-0 bottom-6 text-center text-xl font-extrabold ${flash ? (flash.ok ? "text-emerald-400" : "text-red-400") : "text-transparent"}`}>{flash?.txt ?? "·"}</span>
+    </>
+  );
+}
+
+// ---- 10) LINKS OF RECHTS: tik de kant waar de pijl heen wijst ----------------
+function KantGame() {
+  const [dir, setDir] = useState<"L" | "R">("L");
+  const [score, setScore] = useState(0);
+  const [flash, setFlash] = useState<boolean | null>(null);
+
+  const next = useCallback(() => setDir(Math.random() > 0.5 ? "R" : "L"), []);
+  const tap = (side: "L" | "R") => {
+    if (side === dir) { setScore((s) => s + 1); setFlash(true); } else { setScore((s) => Math.max(0, s - 1)); setFlash(false); }
+    setTimeout(() => setFlash(null), 250);
+    next();
+  };
+
+  return (
+    <>
+      <Hud>↔️ {score}</Hud>
+      <div className="absolute inset-0 flex">
+        <button onClick={() => tap("L")} className="flex-1 active:bg-white/10" />
+        <button onClick={() => tap("R")} className="flex-1 active:bg-white/10" />
+      </div>
+      <div className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-8xl font-black transition-transform ${flash === true ? "scale-125" : flash === false ? "opacity-40" : ""}`}>
+        {dir === "L" ? "👈" : "👉"}
+      </div>
+      <p className="pointer-events-none absolute inset-x-0 bottom-3 text-center text-sm text-white/80">Tik de kant van de pijl! 👈 👉</p>
     </>
   );
 }

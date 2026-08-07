@@ -49,7 +49,7 @@ const TABS = [
 // Elke tool hoort bij een tabblad
 const TOOLS = [
   // ---- Video Best ----
-  { tab: "Video Best", naam: "Filter video maken", beschrijving: "Live camera met 90+ filters + opnemen.", icoon: "🎨", link: "/filter" },
+  { tab: "Video Best", naam: "Filter video maken", beschrijving: "Live camera met 190+ filters + camera-effecten + opnemen.", icoon: "🎨", link: "/filter" },
   { tab: "Video Best", naam: "Filter op je video", beschrijving: "Zet een filter op een bestaande video.", icoon: "🎞️", link: "/videofilter" },
   { tab: "Video Best", naam: "Ondertiteling maken", beschrijving: "Automatische ondertitels onder je video.", icoon: "💬", link: "/ondertiteling" },
   { tab: "Video Best", naam: "Edit Station", beschrijving: "Volledige video-editor: filters, knippen, tekst, snelheid + meer.", icoon: "🎬", link: "/editstation" },
@@ -57,6 +57,7 @@ const TOOLS = [
 
   // ---- Foto Best ----
   { tab: "Foto Best", naam: "Filter foto maken", beschrijving: "Maak een foto met een filter.", icoon: "📸", link: "/foto" },
+  { tab: "Foto Best", naam: "Foto-collage maken", beschrijving: "Zet meerdere foto's in één collage en download hem.", icoon: "🖼️", link: "/collage" },
   { tab: "Foto Best", naam: "AI foto generator", beschrijving: "Typ wat je wil en de AI maakt het plaatje.", icoon: "🪄", link: "/aifoto" },
   { tab: "Foto Best", naam: "AI foto veranderen", beschrijving: "Zet een foto neer en de AI verandert hem echt.", icoon: "🖼️", link: "/aibewerk" },
 

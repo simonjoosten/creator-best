@@ -3,7 +3,7 @@
 //  Hetzelfde canvas dat je ziet, wordt opgenomen → opname = exact je voorbeeld.
 // ===========================================================================
 import type { CSSProperties } from "react";
-import type { Filter, Overlay, Particle } from "./filters";
+import type { Filter, Hud, Overlay, Particle } from "./filters";
 
 export type Seed = { x: number; phase: number; alpha: number; spin: number };
 
@@ -211,6 +211,225 @@ export function drawSlitScan(ctx: CanvasRenderingContext2D, video: HTMLVideoElem
   ctx.restore();
 }
 
+// ---- Camera-schermpje (REC, timecode, dradenkruis, VHS-ruis…) op canvas ----
+export function fmtTimecode(t: number): string {
+  const total = Math.max(0, Math.floor(t));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+export function dateStamp(): string {
+  const d = new Date();
+  const mo = ["JAN", "FEB", "MRT", "APR", "MEI", "JUN", "JUL", "AUG", "SEP", "OKT", "NOV", "DEC"][d.getMonth()];
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${mo} ${p(d.getDate())} ${d.getFullYear()}  ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+export function drawHud(ctx: CanvasRenderingContext2D, hud: Hud, t: number, W: number, H: number) {
+  const accent = hud.accent ?? "#ffffff";
+  const fam = hud.mono ? "monospace" : "sans-serif";
+  const fs = Math.max(11, Math.round(H * 0.045));
+  const pad = Math.round(H * 0.045);
+  const cx = W / 2, cy = H / 2;
+
+  ctx.save();
+  ctx.textBaseline = "top";
+
+  // Zwarte filmbalken boven + onder
+  if (hud.cinemaBars) {
+    ctx.fillStyle = "#000";
+    const bar = Math.round(H * 0.11);
+    ctx.fillRect(0, 0, W, bar);
+    ctx.fillRect(0, H - bar, W, bar);
+  }
+
+  // Verrekijker-masker: alles zwart behalve een rond venster
+  if (hud.circleMask) {
+    ctx.beginPath();
+    ctx.rect(0, 0, W, H);
+    ctx.arc(cx, cy, Math.min(W, H) * 0.46, 0, Math.PI * 2);
+    ctx.fillStyle = "#000";
+    ctx.fill("evenodd");
+  }
+
+  ctx.shadowColor = "rgba(0,0,0,0.7)";
+  ctx.shadowBlur = Math.max(2, H * 0.006);
+  ctx.fillStyle = accent;
+  ctx.strokeStyle = accent;
+
+  // Dradenkruis in het midden
+  if (hud.crosshair) {
+    ctx.save();
+    ctx.lineWidth = Math.max(1, H * 0.003);
+    const g = fs * 0.6, arm = fs * 1.4;
+    ctx.beginPath();
+    ctx.moveTo(cx - g - arm, cy); ctx.lineTo(cx - g, cy);
+    ctx.moveTo(cx + g, cy); ctx.lineTo(cx + g + arm, cy);
+    ctx.moveTo(cx, cy - g - arm); ctx.lineTo(cx, cy - g);
+    ctx.moveTo(cx, cy + g); ctx.lineTo(cx, cy + g + arm);
+    ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx, cy, g * 0.5, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  }
+
+  // Horizonlijn (drone)
+  if (hud.horizon) {
+    ctx.save();
+    ctx.lineWidth = Math.max(1, H * 0.0025);
+    ctx.globalAlpha = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(W * 0.2, cy); ctx.lineTo(cx - fs, cy);
+    ctx.moveTo(cx + fs, cy); ctx.lineTo(W * 0.8, cy);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Focus-haakjes rond het midden
+  if (hud.brackets) {
+    ctx.save();
+    ctx.lineWidth = Math.max(1, H * 0.004);
+    const bw = W * 0.26, bh = H * 0.26, len = Math.min(bw, bh) * 0.3;
+    const corners = [
+      [cx - bw, cy - bh, 1, 1], [cx + bw, cy - bh, -1, 1],
+      [cx - bw, cy + bh, 1, -1], [cx + bw, cy + bh, -1, -1],
+    ];
+    for (const [x, y, sx, sy] of corners) {
+      ctx.beginPath();
+      ctx.moveTo(x + sx * len, y); ctx.lineTo(x, y); ctx.lineTo(x, y + sy * len);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // Hoek-haakjes in de schermhoeken
+  if (hud.corners) {
+    ctx.save();
+    ctx.lineWidth = Math.max(1, H * 0.004);
+    const m = pad, len = H * 0.06;
+    const corners = [
+      [m, m, 1, 1], [W - m, m, -1, 1],
+      [m, H - m, 1, -1], [W - m, H - m, -1, -1],
+    ];
+    for (const [x, y, sx, sy] of corners) {
+      ctx.beginPath();
+      ctx.moveTo(x + sx * len, y); ctx.lineTo(x, y); ctx.lineTo(x, y + sy * len);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // Film-aftelling 3-2-1
+  if (hud.countdown) {
+    ctx.save();
+    const R = Math.min(W, H) * 0.32;
+    const frac = t - Math.floor(t);
+    const n = 3 - (Math.floor(t) % 3);
+    ctx.lineWidth = Math.max(2, H * 0.006);
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx - R, cy); ctx.lineTo(cx + R, cy);
+    ctx.moveTo(cx, cy - R); ctx.lineTo(cx, cy + R); ctx.stroke();
+    ctx.globalAlpha = 0.25;
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, R, -Math.PI / 2, -Math.PI / 2 + frac * Math.PI * 2);
+    ctx.closePath(); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.font = `bold ${Math.round(R)}px ${fam}`;
+    ctx.fillText(String(n), cx, cy);
+    ctx.restore();
+    ctx.textBaseline = "top";
+  }
+
+  // VHS tracking-ruis balk onderaan
+  if (hud.noiseBand) {
+    ctx.save();
+    const by = H * 0.72 + Math.sin(t * 8) * H * 0.03;
+    const bh = H * 0.05;
+    ctx.globalAlpha = 0.35;
+    for (let i = 0; i < 40; i++) {
+      const seg = ((Math.sin(i * 12.9898 + Math.floor(t * 12) * 7.233) * 43758.5) % 1 + 1) % 1;
+      ctx.fillStyle = seg > 0.5 ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.9)";
+      ctx.fillRect((i / 40) * W, by + seg * bh * 0.5, W / 40, bh * (0.3 + seg * 0.7));
+    }
+    ctx.restore();
+    ctx.fillStyle = accent;
+  }
+
+  // Tekst: REC + label linksboven
+  let ty = pad + (hud.cinemaBars ? H * 0.11 : 0);
+  if (hud.rec) {
+    const on = Math.floor(t * 2) % 2 === 0;
+    const r = fs * 0.34;
+    if (on) {
+      ctx.save(); ctx.fillStyle = "#ff3b3b";
+      ctx.beginPath(); ctx.arc(pad + r, ty + fs * 0.5, r, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+    ctx.textAlign = "left";
+    ctx.font = `bold ${fs}px ${fam}`;
+    ctx.fillStyle = accent;
+    ctx.fillText(hud.recLabel ?? "REC", pad + r * 2 + fs * 0.4, ty);
+    ty += fs * 1.4;
+  }
+  if (hud.topLabel) {
+    ctx.textAlign = "left";
+    ctx.font = `bold ${fs}px ${fam}`;
+    ctx.fillStyle = accent;
+    ctx.fillText(hud.topLabel, pad, ty);
+    ty += fs * 1.4;
+  }
+
+  // Rechtsboven: timecode + batterij
+  let tyR = pad + (hud.cinemaBars ? H * 0.11 : 0);
+  ctx.textAlign = "right";
+  ctx.font = `${fs}px ${fam}`;
+  ctx.fillStyle = accent;
+  if (hud.timecode) { ctx.fillText(fmtTimecode(t), W - pad, tyR); tyR += fs * 1.4; }
+  if (hud.battery) {
+    const bw = fs * 1.7, bh = fs * 0.8, x2 = W - pad, x1 = x2 - bw, y = tyR;
+    ctx.save();
+    ctx.lineWidth = Math.max(1, H * 0.003);
+    ctx.strokeStyle = accent;
+    ctx.strokeRect(x1, y, bw, bh);
+    ctx.fillStyle = accent;
+    ctx.fillRect(x2, y + bh * 0.28, fs * 0.14, bh * 0.44);
+    ctx.fillStyle = "#5eff8a";
+    ctx.fillRect(x1 + 2, y + 2, (bw - 4) * 0.7, bh - 4);
+    ctx.restore();
+    ctx.fillStyle = accent;
+  }
+
+  // Onderin: datum/tijd links, info rechts
+  const by = H - pad - fs - (hud.cinemaBars ? H * 0.11 : 0);
+  if (hud.date || hud.dateText) {
+    ctx.textAlign = "left";
+    ctx.font = `${fs}px ${fam}`;
+    ctx.fillText(hud.dateText ?? dateStamp(), pad, by);
+  }
+  if (hud.info) {
+    ctx.textAlign = "right";
+    ctx.font = `${fs}px ${fam}`;
+    ctx.fillText(hud.info, W - pad, by);
+  }
+
+  ctx.restore();
+}
+
+// Subtiele filmflikker + krasje (voor vid: "vb-flicker") in de opname bakken
+function drawFlicker(ctx: CanvasRenderingContext2D, t: number, W: number, H: number) {
+  ctx.save();
+  ctx.globalAlpha = 0.06 + 0.05 * Math.abs(Math.sin(t * 20));
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, W, H);
+  ctx.globalAlpha = 0.5;
+  const x = ((t * 0.13) % 1) * W;
+  ctx.fillStyle = "rgba(0,0,0,0.4)";
+  ctx.fillRect(x, 0, Math.max(1, W * 0.0015), H);
+  ctx.restore();
+}
+
 // De hele scene tekenen: video (met filter, gespiegeld + ingezoomd) + lagen
 export function drawScene(
   ctx: CanvasRenderingContext2D,
@@ -275,6 +494,10 @@ export function drawScene(
   if (filter.particles) drawParticles(ctx, filter.particles, seeds, t, W, H);
   // 4) Stickers / props
   if (filter.props) drawProps(ctx, filter.props, W, H);
+  // 5) Filmflikker (super-8)
+  if (filter.vid === "vb-flicker") drawFlicker(ctx, t, W, H);
+  // 6) Camera-schermpje (REC, timecode, dradenkruis…)
+  if (filter.hud) drawHud(ctx, filter.hud, t, W, H);
 }
 
 // ---- CSS-versie van een overlay, voor het SOEPELE live voorbeeld ----------
