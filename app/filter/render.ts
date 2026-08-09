@@ -430,6 +430,56 @@ function drawFlicker(ctx: CanvasRenderingContext2D, t: number, W: number, H: num
   ctx.restore();
 }
 
+// ---- ECHTE VHS: RGB-split (kleuren uit elkaar) + tracking-scheuren + ruis ---
+type VhsOpts = { chroma: number; tear: number; noise: number; wob: number };
+const VHS_PRESETS: Record<string, VhsOpts> = {
+  vhs: { chroma: 0.006, tear: 1, noise: 0.10, wob: 1.2 },
+  vhsheavy: { chroma: 0.013, tear: 2.2, noise: 0.22, wob: 2.6 },
+};
+
+// Snelle pseudo-ruis (geen Math.sin per pixel = veel sneller)
+function hash8(n: number): number {
+  n = (n << 13) ^ n;
+  return ((n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff) & 0xff;
+}
+
+export function applyVHS(ctx: CanvasRenderingContext2D, t: number, W: number, H: number, preset: string) {
+  const o = VHS_PRESETS[preset] ?? VHS_PRESETS.vhs;
+  const img = ctx.getImageData(0, 0, W, H);
+  const src = img.data;
+  const out = new Uint8ClampedArray(src.length);
+  const shift = Math.max(1, Math.round(W * o.chroma));
+  const frame = Math.floor(t * 30);
+  const tearY = ((t * 0.25) % 1) * H;       // langzaam omhoog scrollende scheur
+  const tearY2 = ((t * 0.6 + 0.4) % 1) * H; // snellere tweede scheur
+
+  for (let y = 0; y < H; y++) {
+    // horizontale verschuiving per rij (gewiebel + scheuren)
+    let rs = Math.round(Math.sin(y * 0.25 + t * 6) * o.wob);
+    const d1 = Math.abs(y - tearY);
+    if (d1 < H * 0.02) rs += Math.round((1 - d1 / (H * 0.02)) * 18 * o.tear);
+    const d2 = Math.abs(y - tearY2);
+    if (d2 < H * 0.012) rs += Math.round((1 - d2 / (H * 0.012)) * 34 * o.tear);
+    const scan = (y & 1) === 0 ? 0.82 : 1; // scanlijn-donkering
+    const rowBase = y * W;
+
+    for (let x = 0; x < W; x++) {
+      const i = (rowBase + x) * 4;
+      // rood links, blauw rechts van groen → klassieke kleurschifting
+      let gx = x + rs; if (gx < 0) gx = 0; else if (gx >= W) gx = W - 1;
+      let rx = gx - shift; if (rx < 0) rx = 0;
+      let bx = gx + shift; if (bx >= W) bx = W - 1;
+      const nz = (hash8(x * 13 + y * 7 + frame * 131) - 128) * o.noise;
+      out[i] = src[(rowBase + rx) * 4] * scan + nz;
+      out[i + 1] = src[(rowBase + gx) * 4 + 1] * scan + nz;
+      out[i + 2] = src[(rowBase + bx) * 4 + 2] * scan + nz;
+      out[i + 3] = 255;
+    }
+  }
+  img.data.set(out);
+  ctx.putImageData(img, 0, 0);
+}
+
 // De hele scene tekenen: video (met filter, gespiegeld + ingezoomd) + lagen
 export function drawScene(
   ctx: CanvasRenderingContext2D,
@@ -487,6 +537,9 @@ export function drawScene(
     applyColorFilter(img.data, ops);
     ctx.putImageData(img, 0, 0);
   }
+
+  // 1c) Echt per-pixel effect (VHS-kleurschifting, scheuren, ruis)
+  if (filter.fx) applyVHS(ctx, t, W, H, filter.fx);
 
   // 2) Gekleurde laag eroverheen
   if (filter.overlay) drawOverlay(ctx, filter.overlay, W, H);

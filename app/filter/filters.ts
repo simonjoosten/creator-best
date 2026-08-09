@@ -75,6 +75,7 @@ export type Filter = {
   particles?: Particle;
   special?: string;
   hud?: Hud;
+  fx?: string; // echt per-pixel effect (bv "vhs", "vhsheavy")
   swatch: string;
 };
 
@@ -154,7 +155,8 @@ export const FILTERS: Filter[] = [
   { id: "glitch", naam: "Glitch klassiek", emoji: "📛", cat: "Glitch", css: "saturate(1.5) contrast(1.2)", vid: "vb-glitch", overlay: scan("rgba(0,255,255,0.18)", 2, 0.5), swatch: "linear-gradient(135deg,#00fff0,#ff003c)" },
   { id: "glitchrgb", naam: "RGB-split", emoji: "🟥", cat: "Glitch", css: "saturate(1.7) contrast(1.15)", vid: "vb-glitch", overlay: lin(90, ["#ff0033", "#00ffe1"], "screen", 0.35), swatch: "linear-gradient(135deg,#ff0033,#00ffe1)" },
   { id: "datamosh", naam: "Datamosh", emoji: "🧩", cat: "Glitch", css: "saturate(2) contrast(1.4) hue-rotate(20deg)", vid: "vb-glitch", overlay: scan("rgba(255,0,200,0.2)", 4, 0.5), swatch: "linear-gradient(135deg,#7b2ff7,#00ffa3)" },
-  { id: "vhs", naam: "VHS tape", emoji: "📼", cat: "Glitch", css: "saturate(1.4) contrast(1.1)", overlay: scan("rgba(255,0,200,0.18)", 2, 0.7), swatch: "linear-gradient(135deg,#00eaff,#ff00c8)" },
+  { id: "vhs", naam: "VHS tape", emoji: "📼", cat: "Glitch", css: "saturate(1.4) contrast(1.1)", fx: "vhs", swatch: "linear-gradient(135deg,#00eaff,#ff00c8)" },
+  { id: "vhsglitch", naam: "VHS glitch", emoji: "📺", cat: "Glitch", css: "saturate(1.6) contrast(1.15) hue-rotate(-8deg)", fx: "vhsheavy", swatch: "linear-gradient(135deg,#ff00c8,#00eaff)" },
   { id: "neonglitch", naam: "Neon glitch", emoji: "⚡", cat: "Glitch", css: "saturate(2) contrast(1.2)", vid: "vb-glitch", overlay: wash("#ff00d4", "screen", 0.3), swatch: "linear-gradient(135deg,#ff00d4,#00ffd0)" },
   { id: "kapot", naam: "Kapot scherm", emoji: "💥", cat: "Glitch", css: "contrast(1.5) saturate(1.3)", vid: "vb-glitch", overlay: scan("rgba(0,0,0,0.4)", 5, 0.5), swatch: "linear-gradient(135deg,#222,#00fff0)" },
   { id: "hologram", naam: "Hologram", emoji: "🛸", cat: "Glitch", css: "saturate(1.6) brightness(1.1) hue-rotate(160deg)", vid: "vb-wobble", overlay: scan("rgba(0,255,200,0.2)", 3, 0.6), swatch: "linear-gradient(135deg,#00ffd0,#0066ff)" },
@@ -205,7 +207,9 @@ export const FILTERS: Filter[] = [
 
   // ---- CAMERA (echte camera-schermpjes / opname-effecten) ------------------
   { id: "cam-rec", naam: "Camcorder REC", emoji: "🔴", cat: "Camera", css: "saturate(1.15) contrast(1.05)", overlay: wash("#ffb060", "soft-light", 0.22), hud: { accent: "#ffffff", mono: true, rec: true, timecode: true, battery: true, corners: true }, swatch: "linear-gradient(135deg,#2a2a2a,#ff3b3b)" },
-  { id: "cam-vhs85", naam: "VHS 1985", emoji: "📼", cat: "Camera", css: "saturate(1.4) contrast(1.08)", vid: "vb-wobble", overlay: scan("rgba(255,0,200,0.16)", 2, 0.6), hud: { accent: "#eaeaea", mono: true, dateText: "▶ PLAY", date: true, noiseBand: true, topLabel: "SP" }, swatch: "linear-gradient(135deg,#00eaff,#ff00c8)" },
+  { id: "cam-vhs85", naam: "VHS 1985", emoji: "📼", cat: "Camera", css: "saturate(1.35) contrast(1.08) brightness(1.02)", fx: "vhs", hud: { accent: "#eaeaea", mono: true, dateText: "▶ PLAY", date: true, noiseBand: true, topLabel: "SP" }, swatch: "linear-gradient(135deg,#00eaff,#ff00c8)" },
+  { id: "cam-vhsdood", naam: "Kapotte VHS", emoji: "📼", cat: "Camera", css: "saturate(1.25) contrast(1.12) brightness(0.98)", fx: "vhsheavy", hud: { accent: "#dddddd", mono: true, dateText: "◼ STOP", date: true, noiseBand: true, topLabel: "TRACKING" }, swatch: "linear-gradient(135deg,#ff00c8,#111)" },
+  { id: "cam-vhscam", naam: "VHS-camcorder", emoji: "🎥", cat: "Camera", css: "saturate(1.3) contrast(1.06)", fx: "vhs", hud: { accent: "#ffffff", mono: true, rec: true, timecode: true, noiseBand: true }, swatch: "linear-gradient(135deg,#2a2a2a,#00eaff)" },
   { id: "cam-super8", naam: "Super-8 (8mm)", emoji: "🎞️", cat: "Camera", css: "sepia(0.45) saturate(1.2) contrast(1.05) brightness(1.03)", vid: "vb-flicker", overlay: scan("rgba(0,0,0,0.22)", 3, 0.35), hud: { accent: "#ffd9a0", mono: true, topLabel: "8mm", corners: true }, swatch: "linear-gradient(135deg,#caa472,#3a2a16)" },
   { id: "cam-cctv", naam: "Bewaking CCTV", emoji: "📹", cat: "Camera", css: "grayscale(0.7) contrast(1.2) brightness(1.02)", overlay: vignette(0.7), hud: { accent: "#d7ffd9", mono: true, rec: true, topLabel: "CAM 03", date: true, corners: true }, swatch: "linear-gradient(135deg,#334455,#000)" },
   { id: "cam-night", naam: "Nachtzicht", emoji: "🌙", cat: "Camera", css: "brightness(1.1) saturate(1.3) hue-rotate(70deg) contrast(1.15)", overlay: wash("#00ff66", "soft-light", 0.35), hud: { accent: "#8dff8d", mono: true, crosshair: true, brackets: true, topLabel: "NIGHT VISION" }, swatch: "linear-gradient(135deg,#001a00,#00ff66)" },

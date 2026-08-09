@@ -78,6 +78,11 @@ export default function FilterPage() {
   const [shareMsg, setShareMsg] = useState<string | null>(null);
 
   const isScan = f.special === "scan";
+  // fx-filters (echte VHS enz.) worden live óók op het canvas gerenderd,
+  // zodat wat je ziet exact is wat je opneemt. Het canvas tekent dan de hele
+  // scène, dus de losse DOM-lagen slaan we over (anders dubbel).
+  const canvasFull = !!f.fx;
+  const showCanvas = isScan || canvasFull;
 
   // Tap het canvas maar ÉÉN keer af (Safari laat dat niet vaker toe) en hergebruik
   function getCanvasStream(canvas: HTMLCanvasElement, mic: MediaStream) {
@@ -94,19 +99,29 @@ export default function FilterPage() {
     const loop = () => {
       const video = videoRef.current;
       const canvas = canvasRef.current;
-      const scanner = filterRef.current.special === "scan";
-      if (video && canvas && video.videoWidth && (scanner || recordingRef.current)) {
-        if (scanner && !recordingRef.current && canvas.width !== video.videoWidth) {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          slitStartRef.current = performance.now();
+      const fcur = filterRef.current;
+      const scanner = fcur.special === "scan";
+      const fx = !!fcur.fx;
+      const live = scanner || fx;
+      if (video && canvas && video.videoWidth && (live || recordingRef.current)) {
+        // Live (niet-opnemend) canvas-formaat kiezen: scanner op volle res,
+        // fx wat kleiner voor soepele per-pixel-verwerking.
+        if (live && !recordingRef.current) {
+          const targetH = scanner ? video.videoHeight : Math.min(360, video.videoHeight);
+          const cw = Math.round((video.videoWidth * targetH) / video.videoHeight);
+          if (canvas.width !== cw || canvas.height !== targetH) {
+            canvas.width = cw;
+            canvas.height = targetH;
+            slitStartRef.current = performance.now();
+            recStartRef.current = performance.now();
+          }
         }
         const ctx = canvas.getContext("2d");
         if (ctx) {
           if (scanner) {
             drawSlitScan(ctx, video, (performance.now() - slitStartRef.current) / 1000, canvas.width, canvas.height, mirrorRef.current);
           } else {
-            drawScene(ctx, video, filterRef.current, zoomRef.current, (performance.now() - recStartRef.current) / 1000, canvas.width, canvas.height, seedsRef.current, mirrorRef.current);
+            drawScene(ctx, video, fcur, zoomRef.current, (performance.now() - recStartRef.current) / 1000, canvas.width, canvas.height, seedsRef.current, mirrorRef.current);
           }
         }
       }
@@ -226,17 +241,17 @@ export default function FilterPage() {
             />
           </div>
 
-          {/* Opname-canvas — zichtbaar bij de scanner (slit-scan), anders verborgen */}
-          <canvas ref={canvasRef} className={isScan ? "absolute inset-0 h-full w-full object-cover" : "hidden"} />
+          {/* Opname-canvas — zichtbaar bij de scanner (slit-scan) en bij fx-filters (VHS) */}
+          <canvas ref={canvasRef} className={showCanvas ? "absolute inset-0 h-full w-full object-cover" : "hidden"} />
 
-          {/* Gekleurde laag */}
-          {f.overlay && <OverlayLayers overlay={f.overlay} />}
+          {/* Gekleurde laag (bij fx zit dit al in het canvas) */}
+          {f.overlay && !canvasFull && <OverlayLayers overlay={f.overlay} />}
 
           {/* Camera-schermpje (REC, timecode, dradenkruis…) */}
-          {f.hud && <HudLayer hud={f.hud} />}
+          {f.hud && !canvasFull && <HudLayer hud={f.hud} />}
 
           {/* Deeltjes */}
-          {f.particles &&
+          {f.particles && !canvasFull &&
             Array.from({ length: f.particles.count }).map((_, i) => {
               const s = seeds[i % seeds.length];
               const dur = Math.max(1, 1 / Math.abs(f.particles!.speed));
@@ -259,7 +274,7 @@ export default function FilterPage() {
             })}
 
           {/* Vaste stickers */}
-          {fixedProps.map((pr, i) => (
+          {!canvasFull && fixedProps.map((pr, i) => (
             <span
               key={i}
               className="pointer-events-none absolute select-none"
