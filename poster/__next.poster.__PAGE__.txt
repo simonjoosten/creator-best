@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[70281,["/creator-best/_next/static/chunks/05-c3ty_6dwfk.js","/creator-best/_next/static/chunks/14mrh2-p_w84d.js","/creator-best/_next/static/chunks/2hpl65_f-txjd.js"],"default"]
+3:I[97367,["/creator-best/_next/static/chunks/05-c3ty_6dwfk.js","/creator-best/_next/static/chunks/14mrh2-p_w84d.js"],"OutletBoundary"]
+4:"$Sreact.suspense"
+0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"cfg":{"titel":"Poster maker","icoon":"🖼️","uitleg":"Maak een coole poster voor aan je muur.","suffix":", epic movie poster art, dramatic lighting, cinematic, highly detailed","placeholder":"bijv. een astronaut op een buitenaardse planeet","voorbeelden":["een superheld in de stad","een racewagen in de regen","een magisch bos bij nacht","een drakenrijder"],"w":768,"h":1024}}],[["$","script","script-0",{"src":"/creator-best/_next/static/chunks/2hpl65_f-txjd.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"kUCut34JiG-4GGiI7Yoai"}
+5:null

@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[70281,["/creator-best/_next/static/chunks/05-c3ty_6dwfk.js","/creator-best/_next/static/chunks/14mrh2-p_w84d.js","/creator-best/_next/static/chunks/2hpl65_f-txjd.js"],"default"]
+3:I[97367,["/creator-best/_next/static/chunks/05-c3ty_6dwfk.js","/creator-best/_next/static/chunks/14mrh2-p_w84d.js"],"OutletBoundary"]
+4:"$Sreact.suspense"
+0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"cfg":{"titel":"Emoji maker","icoon":"😎","uitleg":"Verzin je eigen emoji en de AI tekent hem!","suffix":", single 3d emoji icon, glossy, expressive, centered, plain light background, apple emoji style","placeholder":"bijv. een lachende patat","voorbeelden":["een verliefde robot","een boze wolk","een chille cactus","een superheld-banaan"],"w":768,"h":768}}],[["$","script","script-0",{"src":"/creator-best/_next/static/chunks/2hpl65_f-txjd.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"kUCut34JiG-4GGiI7Yoai"}
+5:null

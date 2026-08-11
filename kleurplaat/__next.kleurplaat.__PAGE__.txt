@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[70281,["/creator-best/_next/static/chunks/05-c3ty_6dwfk.js","/creator-best/_next/static/chunks/14mrh2-p_w84d.js","/creator-best/_next/static/chunks/2hpl65_f-txjd.js"],"default"]
+3:I[97367,["/creator-best/_next/static/chunks/05-c3ty_6dwfk.js","/creator-best/_next/static/chunks/14mrh2-p_w84d.js"],"OutletBoundary"]
+4:"$Sreact.suspense"
+0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"cfg":{"titel":"Kleurplaat maker","icoon":"🖍️","uitleg":"Typ wat je wil en de AI maakt er een kleurplaat van — printen en inkleuren maar!","suffix":", black and white line art coloring page for kids, clean bold outlines, white background, no shading, no color","placeholder":"bijv. een dinosaurus die voetbalt","voorbeelden":["een schattige eenhoorn","een ruimteschip met aliens","een kasteel met een draak","een onderwaterwereld met vissen"],"w":768,"h":1024}}],[["$","script","script-0",{"src":"/creator-best/_next/static/chunks/2hpl65_f-txjd.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"kUCut34JiG-4GGiI7Yoai"}
+5:null
